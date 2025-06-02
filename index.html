@@ -536,8 +536,8 @@
         <td>${escapeHTML(job.customerName)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
         <td>${escapeHTML(job.jobLocation)}</td>
-        <td>${escapeHTML(job.deliveryDate)}</td>
-        <td>${escapeHTML(job.scheduledDate)}</td>
+        <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
+        <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
         <td>${servicesHTML}</td>
         <td>${job.haulAway ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
         <td>${job.valve ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
