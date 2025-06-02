@@ -511,6 +511,11 @@
   function clearForm() {
     document.getElementById('job-form').reset();
   }
+  function formatDateToMMDDYYYY(dateStr) {
+    if (!dateStr || dateStr.length !== 10) return "";
+    const [year, month, day] = dateStr.split('-');
+    return `${month}-${day}-${year}`;
+  }
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
