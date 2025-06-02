@@ -263,8 +263,8 @@
           <label><input type="checkbox" id="plumbing"> Plumbing</label>
           <label><input type="checkbox" id="cabinetry"> Cabinetry</label>
           <label><input type="checkbox" id="countertops"> Countertops</label>
-          <label><input type="checkbox" id="countertops"> Haul Away</label>
-          <label><input type="checkbox" id="countertops"> Valve</label>
+          <label><input type="checkbox" id="haulAway"> Haul Away</label>
+          <label><input type="checkbox" id="valve"> Valve</label>
         </div>
       </div>
       <div class="form-actions">
@@ -309,18 +309,20 @@
 
   // Helper: Get form data
   function getFormData() {
+    // Defensive: fallback to false if element is not found (shouldn't happen if HTML is correct)
+    function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
     return {
       customerName: document.getElementById('customerName').value.trim(),
       jobDescription: document.getElementById('jobDescription').value.trim(),
       jobLocation: document.getElementById('jobLocation').value.trim(),
       deliveryDate: document.getElementById('deliveryDate').value,
       scheduledDate: document.getElementById('scheduledDate').value,
-      electrical: document.getElementById('electrical').checked,
-      plumbing: document.getElementById('plumbing').checked,
-      cabinetry: document.getElementById('cabinetry').checked,
-      countertops: document.getElementById('countertops').checked,
-      haulAway: document.getElementById('haulAway').checked,
-      valve: document.getElementById('valve').checked
+      electrical: isChecked('electrical'),
+      plumbing: isChecked('plumbing'),
+      cabinetry: isChecked('cabinetry'),
+      countertops: isChecked('countertops'),
+      haulAway: isChecked('haulAway'),
+      valve: isChecked('valve')
     };
   }
 
