@@ -366,20 +366,22 @@
   const backendStatusIcon = document.getElementById('backendStatusIcon');
 
   let backendReady = false;
-  function checkBackend(attempt = 1) {
-    backendStatusMsg.innerText = attempt === 1
+  let backendChecked = false;
+  let backendAttempts = 0;
+  function checkBackend() {
+    backendAttempts++;
+    backendStatusMsg.innerText = backendAttempts === 1
       ? "Checking backend status..."
-      : `Backend sleeping, trying to wake up (attempt ${attempt})...`;
+      : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
     backendStatusIcon.innerText = "🔄";
     fetch(API_URL + "/", { method: "GET", cache: "no-store" })
       .then(async r => {
         if (r.ok) {
           backendReady = true;
           backendStatusIcon.innerText = "✅";
-          backendStatusMsg.innerText = "Backend is ready!";
+          backendStatusMsg.innerText = "Backend is ready! Reloading...";
           setTimeout(() => {
-            backendStatusBar.style.display = "none";
-            startApp();
+            location.reload(); // Force full refresh to pick up backend state
           }, 900);
         } else throw new Error();
       })
@@ -387,7 +389,7 @@
         backendReady = false;
         backendStatusIcon.innerText = "💤";
         backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
-        setTimeout(() => checkBackend(attempt + 1), 4000);
+        setTimeout(() => checkBackend(), 4000);
       });
   }
 
@@ -465,7 +467,6 @@
       });
       const res = await r.json();
       if (!res.ok) throw new Error(res.error || "Signup failed");
-      // After signup, switch to login
       showLogin();
       document.getElementById('authUsername').value = username;
       document.getElementById('authPassword').value = '';
