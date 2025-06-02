@@ -202,6 +202,11 @@
       font-weight: 500;
       border: 1px solid var(--primary);
     }
+    .chip-red {
+      background: #fbeaea;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
     .export-import-bar {
       display: flex;
       justify-content: flex-end;
@@ -532,11 +537,20 @@
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
       let servicesHTML = "";
-      if (job.electrical) servicesHTML += `<span class="chip">Electrical</span>`;
-      if (job.plumbing) servicesHTML += `<span class="chip">Plumbing</span>`;
-      if (job.cabinetry) servicesHTML += `<span class="chip">Cabinetry</span>`;
-      if (job.countertops) servicesHTML += `<span class="chip">Countertops</span>`;
-      if (!servicesHTML) servicesHTML = `<span style="color:#aaa;font-style:italic;">None</span>`;
+      // Blue if checked, red if not checked
+      servicesHTML += job.electrical
+        ? `<span class="chip">Electrical</span>`
+        : `<span class="chip chip-red">No Electrical</span>`;
+      servicesHTML += job.plumbing
+        ? `<span class="chip">Plumbing</span>`
+        : `<span class="chip chip-red">No Plumbing</span>`;
+      servicesHTML += job.cabinetry
+        ? `<span class="chip">Cabinetry</span>`
+        : `<span class="chip chip-red">No Cabinetry</span>`;
+      servicesHTML += job.countertops
+        ? `<span class="chip">Countertops</span>`
+        : `<span class="chip chip-red">No Countertops</span>`;
+
       tr.innerHTML = `
         <td>${escapeHTML(job.customerName)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
