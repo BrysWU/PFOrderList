@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Customer Job Scheduler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Fonts and full modern CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -18,7 +17,6 @@
       --shadow: 0 4px 24px 0 #0001;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Inter', Arial, sans-serif;
       background: var(--secondary);
@@ -33,6 +31,12 @@
       letter-spacing: -1px;
     }
     h1 { margin-top: 2em; font-size: 2.2rem; color: var(--primary); }
+    .subtitle {
+      text-align: center;
+      font-size: 1.2em;
+      color: #333;
+      margin-bottom: 1.5em;
+    }
     h2 { margin-top: 2.7em; font-size: 1.3rem; }
     main {
       max-width: 75vw;
@@ -255,16 +259,13 @@
 </head>
 <body>
   <h1>Customer Job Scheduler</h1>
-  
-  <!-- Backend status bar -->
+  <div class="subtitle">Manage job orders and schedules. Secure, multi-user, and backed up to the cloud.</div>
   <div id="backendStatusBar" style="display:flex;justify-content:center;align-items:center;margin-top:2em;">
     <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
       Checking backend status...
     </span>
   </div>
-  
-  <!-- Login/Signup Section -->
   <div id="authSection" class="auth-section" style="display:none;">
     <h2 id="authTitle">Login</h2>
     <input type="text" id="authUsername" placeholder="Username" autocomplete="username">
@@ -281,13 +282,10 @@
     <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
     <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
   </div>
-  
-  <!-- User Status Bar -->
   <div id="authStatusBar" class="auth-status-bar" style="display:none;">
     <span id="authWelcome"></span>
     <button class="button secondary" id="logoutBtn">Logout</button>
   </div>
-
   <main id="mainApp" style="display:none;">
     <form id="job-form" autocomplete="off">
       <div class="form-group">
@@ -326,7 +324,6 @@
         <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
       </div>
     </form>
-
     <div class="export-import-bar">
       <button class="button" id="exportBtn">Export Jobs</button>
       <label>
@@ -334,7 +331,6 @@
         <span class="button secondary" tabindex="0">Import Jobs</span>
       </label>
     </div>
-
     <h2>Job List</h2>
     <div class="table-wrapper">
       <table id="jobTable">
@@ -357,16 +353,11 @@
     </div>
   </main>
 <script>
-  // ==== CONFIG ====
-  const API_URL = 'https://pfback-dcuc.onrender.com'; // <- CHANGE THIS
-
-  // ==== BACKEND STATUS CHECK ====
+  const API_URL = 'https://pfback-dcuc.onrender.com'; // CHANGE THIS!
   const backendStatusBar = document.getElementById('backendStatusBar');
   const backendStatusMsg = document.getElementById('backendStatusMsg');
   const backendStatusIcon = document.getElementById('backendStatusIcon');
-
   let backendReady = false;
-  let backendChecked = false;
   let backendAttempts = 0;
   function checkBackend() {
     backendAttempts++;
@@ -378,11 +369,23 @@
       .then(async r => {
         if (r.ok) {
           backendReady = true;
-          backendStatusIcon.innerText = "✅";
-          backendStatusMsg.innerText = "Backend is ready! Reloading...";
-          setTimeout(() => {
-            location.reload(); // Force full refresh to pick up backend state
-          }, 900);
+          // If we've just reloaded, don't reload again; else, reload once
+          if (!sessionStorage.getItem('backendJustReloaded')) {
+            sessionStorage.setItem('backendJustReloaded', '1');
+            backendStatusMsg.innerText = "Backend is ready! Reloading...";
+            backendStatusIcon.innerText = "✅";
+            setTimeout(() => {
+              location.reload();
+            }, 900);
+          } else {
+            sessionStorage.removeItem('backendJustReloaded');
+            backendStatusIcon.innerText = "✅";
+            backendStatusMsg.innerText = "Backend is ready!";
+            setTimeout(() => {
+              backendStatusBar.style.display = "none";
+              startApp();
+            }, 700);
+          }
         } else throw new Error();
       })
       .catch(err => {
@@ -392,20 +395,14 @@
         setTimeout(() => checkBackend(), 4000);
       });
   }
-
-  // ==== AUTH STATE ====
   let auth = { token: null, username: null };
   let jobs = [];
-
-  // ==== UI Elements ====
   const $authSection    = document.getElementById('authSection');
   const $signupSection  = document.getElementById('signupSection');
   const $mainApp        = document.getElementById('mainApp');
   const $authStatusBar  = document.getElementById('authStatusBar');
   const $authWelcome    = document.getElementById('authWelcome');
   const $logoutBtn      = document.getElementById('logoutBtn');
-
-  // ==== SHOW/HIDE UI ====
   function showLogin() {
     $authSection.style.display = 'block';
     $signupSection.style.display = 'none';
@@ -432,8 +429,6 @@
     $authStatusBar.style.display = 'flex';
     $authWelcome.innerText = `Logged in as ${auth.username}`;
   }
-
-  // ==== AUTH EVENT HANDLERS ====
   document.getElementById('loginBtn').onclick = async () => {
     const username = document.getElementById('authUsername').value;
     const password = document.getElementById('authPassword').value;
@@ -479,8 +474,6 @@
     auth = {token:null, username:null};
     showLogin();
   };
-
-  // ==== LOAD/SAVE JOBS ====
   async function loadJobs() {
     if (!auth.token) return;
     const r = await fetch(API_URL+'/api/load', {
@@ -499,8 +492,6 @@
       body: JSON.stringify({jobs})
     });
   }
-
-  // ==== FORM AND TABLE FUNCTIONALITY ====
   function getFormData() {
     function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
     return {
@@ -517,11 +508,9 @@
       valve: isChecked('valve')
     };
   }
-
   function clearForm() {
     document.getElementById('job-form').reset();
   }
-
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
@@ -559,7 +548,6 @@
       tbody.appendChild(tr);
     });
   }
-
   function escapeHTML(str) {
     return String(str).replace(/[&<>"']/g, function (m) {
       return ({
@@ -571,7 +559,6 @@
       })[m];
     });
   }
-
   function deleteJob(idx) {
     if (confirm('Delete this job?')) {
       jobs.splice(idx, 1);
@@ -579,7 +566,6 @@
       saveJobs();
     }
   }
-
   document.getElementById('job-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const job = getFormData();
@@ -593,11 +579,9 @@
     saveJobs();
     clearForm();
   });
-
   document.getElementById('clearBtn').addEventListener('click', function() {
     clearForm();
   });
-
   document.getElementById('exportBtn').addEventListener('click', function() {
     if(!jobs.length) {
       alert("No jobs to export.");
@@ -614,7 +598,6 @@
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   });
-
   document.getElementById('importFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -635,8 +618,6 @@
     reader.readAsText(file);
     e.target.value = "";
   });
-
-  // ==== APP INIT ====
   function startApp() {
     const saved = localStorage.getItem('auth');
     if (saved) {
@@ -647,7 +628,6 @@
       showLogin();
     }
   }
-
   window.onload = () => {
     backendStatusBar.style.display = "flex";
     $authSection.style.display = "none";
