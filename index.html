@@ -96,7 +96,6 @@
       cursor: pointer;
       margin-right: 0.4em;
     }
-
     .form-actions {
       grid-column: 1 / -1;
       display: flex;
@@ -222,6 +221,57 @@
       margin: 0;
       cursor: pointer;
     }
+    .share-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 1.1em;
+      margin-top: 0.7em;
+      margin-bottom: 0.5em;
+    }
+    .share-modal {
+      display: none;
+      position: fixed;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(30,30,40,0.17);
+      z-index: 99;
+      justify-content: center;
+      align-items: center;
+    }
+    .share-modal.active {
+      display: flex;
+    }
+    .share-modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2em 2em 1.5em 2em;
+      box-shadow: 0 6px 28px #0003;
+      max-width: 430px;
+      min-width: 320px;
+      text-align: center;
+      position: relative;
+    }
+    .share-link-box {
+      display: flex;
+      align-items: center;
+      gap: 0.7em;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 0.7em 0.8em;
+      margin: 1.2em 0 1em 0;
+      font-size: 0.98em;
+      word-break: break-all;
+    }
+    .share-modal .close-btn {
+      position: absolute;
+      top: 1em; right: 1em;
+      font-size: 1.2em;
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      padding: 0;
+    }
     .auth-section {
       max-width: 350px;
       margin: 2em auto 2em auto;
@@ -247,6 +297,18 @@
       margin: 1em; font-size: 1.05em;
     }
     .auth-status-bar span { font-weight: 600; color: var(--primary); }
+    .readonly-banner {
+      background: #ffe7e7;
+      color: #b81b1b;
+      padding: 1em;
+      border-radius: 10px;
+      margin: 1.2em 0 2em 0;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1em;
+      letter-spacing: 0.02em;
+      border: 1.5px solid #ffbdbd;
+    }
     @media (max-width: 700px) {
       main { padding: 1em 0.1em 1em 0.1em; }
       form { grid-template-columns: 1fr; gap: 1.1em 0.5em; }
@@ -257,7 +319,7 @@
       .auth-status-bar { flex-direction: column; gap: 0.3em; align-items: flex-start; }
     }
     @media (max-width: 430px) {
-      .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
+      .export-import-bar, .share-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
       .form-actions { flex-direction: column; gap: 0.6em; }
     }
   </style>
@@ -291,7 +353,26 @@
     <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
     <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
   </div>
+  <!-- Share modal -->
+  <div id="shareModal" class="share-modal">
+    <div class="share-modal-content">
+      <button class="close-btn" id="closeShareModal" title="Close">&times;</button>
+      <h2>Share Your Job List</h2>
+      <div style="font-size:1.03em;color:#333;margin-bottom:0.6em;">Anyone with this link can view your job list.</div>
+      <div class="share-link-box">
+        <input id="shareLinkInput" type="text" style="width:100%;border:none;background:transparent;font-size:1em;" readonly>
+        <button class="button" id="copyShareLink">Copy</button>
+      </div>
+      <div id="shareCopiedMsg" style="color:var(--primary);font-weight:600;display:none;">Copied!</div>
+    </div>
+  </div>
   <main id="mainApp" style="display:none;">
+    <div id="readonlyBanner" class="readonly-banner" style="display:none;">
+      <span>This is a shared view-only job list. You cannot make changes.</span>
+    </div>
+    <div class="share-bar" id="shareBar" style="display:none;">
+      <button class="button" id="shareBtn">Share Job List</button>
+    </div>
     <form id="job-form" autocomplete="off">
       <div class="form-group">
         <label for="customerName">Customer Name</label>
@@ -359,6 +440,33 @@
   </main>
 <script>
   const API_URL = 'https://pfback-dcuc.onrender.com'; // CHANGE THIS!
+  function getShareTokenFromUrl() {
+    // Supports /share/<token> and ?share=<token>
+    const p = window.location.pathname;
+    const q = new URLSearchParams(window.location.search);
+    if (p.startsWith("/share/")) return p.split("/share/")[1];
+    if (q.has("share")) return q.get("share");
+    return null;
+  }
+  // --- Share Modal Logic ---
+  function showShareModal(link) {
+    document.getElementById('shareModal').classList.add('active');
+    document.getElementById('shareLinkInput').value = link;
+    document.getElementById('shareCopiedMsg').style.display = 'none';
+  }
+  function hideShareModal() {
+    document.getElementById('shareModal').classList.remove('active');
+  }
+  document.getElementById('closeShareModal').onclick = hideShareModal;
+  document.getElementById('copyShareLink').onclick = function() {
+    const link = document.getElementById('shareLinkInput').value;
+    navigator.clipboard.writeText(link);
+    document.getElementById('shareCopiedMsg').style.display = '';
+    setTimeout(() => {
+      document.getElementById('shareCopiedMsg').style.display = 'none';
+    }, 1200);
+  };
+  // ==== Backend Status Check ====
   const backendStatusBar = document.getElementById('backendStatusBar');
   const backendStatusMsg = document.getElementById('backendStatusMsg');
   const backendStatusIcon = document.getElementById('backendStatusIcon');
@@ -374,7 +482,6 @@
       .then(async r => {
         if (r.ok) {
           backendReady = true;
-          // If we've just reloaded, don't reload again; else, reload once
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
             backendStatusMsg.innerText = "Backend is ready! Reloading...";
@@ -402,12 +509,16 @@
   }
   let auth = { token: null, username: null };
   let jobs = [];
+  let readonly = false;
   const $authSection    = document.getElementById('authSection');
   const $signupSection  = document.getElementById('signupSection');
   const $mainApp        = document.getElementById('mainApp');
   const $authStatusBar  = document.getElementById('authStatusBar');
   const $authWelcome    = document.getElementById('authWelcome');
   const $logoutBtn      = document.getElementById('logoutBtn');
+  const $shareBar       = document.getElementById('shareBar');
+  const $shareBtn       = document.getElementById('shareBtn');
+  const $readonlyBanner = document.getElementById('readonlyBanner');
   function showLogin() {
     $authSection.style.display = 'block';
     $signupSection.style.display = 'none';
@@ -490,7 +601,7 @@
     renderJobs();
   }
   async function saveJobs() {
-    if (!auth.token) return;
+    if (!auth.token || readonly) return;
     await fetch(API_URL+'/api/save', {
       method:'POST',
       headers: {'Content-Type':'application/json', 'Authorization': auth.token},
@@ -537,7 +648,6 @@
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
       let servicesHTML = "";
-      // Blue if checked, red if not checked
       servicesHTML += job.electrical
         ? `<span class="chip">Electrical</span>`
         : `<span class="chip chip-red">No Electrical</span>`;
@@ -550,7 +660,6 @@
       servicesHTML += job.countertops
         ? `<span class="chip">Countertops</span>`
         : `<span class="chip chip-red">No Countertops</span>`;
-
       tr.innerHTML = `
         <td>${escapeHTML(job.customerName)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
@@ -561,7 +670,7 @@
         <td>${job.haulAway ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
         <td>${job.valve ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
         <td>
-          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
+          ${readonly ? '' : `<button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>`}
         </td>
       `;
       tbody.appendChild(tr);
@@ -579,6 +688,7 @@
     });
   }
   function deleteJob(idx) {
+    if (readonly) return;
     if (confirm('Delete this job?')) {
       jobs.splice(idx, 1);
       renderJobs();
@@ -587,6 +697,7 @@
   }
   document.getElementById('job-form').addEventListener('submit', function(e) {
     e.preventDefault();
+    if (readonly) return;
     const job = getFormData();
     if (!job.customerName || !job.jobDescription || !job.jobLocation ||
         !job.deliveryDate || !job.scheduledDate) {
@@ -599,6 +710,7 @@
     clearForm();
   });
   document.getElementById('clearBtn').addEventListener('click', function() {
+    if (readonly) return;
     clearForm();
   });
   document.getElementById('exportBtn').addEventListener('click', function() {
@@ -618,6 +730,7 @@
     URL.revokeObjectURL(url);
   });
   document.getElementById('importFile').addEventListener('change', function(e) {
+    if (readonly) return;
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -637,7 +750,61 @@
     reader.readAsText(file);
     e.target.value = "";
   });
+
+  // --- Share button logic ---
+  if($shareBtn) {
+    $shareBtn.onclick = async () => {
+      if (!auth.token) return;
+      $shareBtn.textContent = "Generating link...";
+      $shareBtn.disabled = true;
+      try {
+        const r = await fetch(API_URL + '/api/share', {
+          method: 'POST',
+          headers: {'Authorization': auth.token}
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Failed to generate link");
+        let shareUrl = (window.location.origin + "/share/" + res.token);
+        showShareModal(shareUrl);
+      } catch (e) {
+        alert("Unable to generate share link.");
+      }
+      $shareBtn.textContent = "Share Job List";
+      $shareBtn.disabled = false;
+    };
+  }
+
   function startApp() {
+    // If share token in URL, show read-only shared view
+    const shareToken = getShareTokenFromUrl();
+    if (shareToken) {
+      readonly = true;
+      $mainApp.style.display = '';
+      $authSection.style.display = 'none';
+      $signupSection.style.display = 'none';
+      $authStatusBar.style.display = 'none';
+      $readonlyBanner.style.display = '';
+      document.getElementById('shareBar').style.display = 'none';
+      document.getElementById('job-form').style.display = 'none';
+      document.querySelector('.export-import-bar').style.display = 'none';
+      fetch(API_URL + '/api/share/' + shareToken)
+        .then(r=>r.json())
+        .then(res => {
+          jobs = res.jobs || [];
+          renderJobs();
+        })
+        .catch(()=> {
+          jobs = [];
+          renderJobs();
+          $readonlyBanner.innerHTML = "<span style='color:#a00'>Shared job list not found.</span>";
+        });
+      return;
+    }
+    // Normal logged-in UI
+    $readonlyBanner.style.display = 'none';
+    document.getElementById('job-form').style.display = '';
+    document.querySelector('.export-import-bar').style.display = '';
+    $shareBar.style.display = '';
     const saved = localStorage.getItem('auth');
     if (saved) {
       auth = JSON.parse(saved);
