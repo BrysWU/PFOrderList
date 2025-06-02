@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Customer Job Scheduler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Modern Google Fonts and minimal CSS reset -->
+  <!-- Google Fonts and full modern CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -135,8 +135,6 @@
     .button.danger:hover, .action-btn:hover {
       background: var(--danger-hover);
     }
-
-    /* Table Styles */
     .table-wrapper {
       overflow-x: auto;
       background: #fff;
@@ -200,8 +198,6 @@
       font-weight: 500;
       border: 1px solid var(--primary);
     }
-
-    /* Export/Import Bar */
     .export-import-bar {
       display: flex;
       justify-content: flex-end;
@@ -217,14 +213,39 @@
       margin: 0;
       cursor: pointer;
     }
-
-    /* Responsive */
+    .auth-section {
+      max-width: 350px;
+      margin: 2em auto 2em auto;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 2em 1.5em 1.5em 1.5em;
+      box-shadow: 0 2px 10px #0001;
+    }
+    .auth-section h2 { margin-bottom: 1em; text-align: center; }
+    .auth-section input[type="text"],
+    .auth-section input[type="password"] {
+      width: 100%; padding: 0.7em 1em; margin-bottom: 1em;
+      border: 1.5px solid var(--border); border-radius: 7px; font-size: 1rem;
+      background: #fff; transition: border 0.2s;
+    }
+    .auth-section input[type="text"]:focus,
+    .auth-section input[type="password"]:focus {
+      border: 1.5px solid var(--primary);
+    }
+    .auth-section .button { width: 100%; margin-bottom: 0.8em; }
+    .auth-status-bar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 1em;
+      margin-bottom: 1em; font-size: 1.05em;
+    }
+    .auth-status-bar span { font-weight: 600; color: var(--primary); }
     @media (max-width: 700px) {
       main { padding: 1em 0.1em 1em 0.1em; }
       form { grid-template-columns: 1fr; gap: 1.1em 0.5em; }
       .table-wrapper { min-width: 0; }
       table { min-width: 0; font-size: 0.98em; }
       th, td { padding: 0.7em 0.5em; }
+      .auth-section { max-width: 100%; }
+      .auth-status-bar { flex-direction: column; gap: 0.3em; align-items: flex-start; }
     }
     @media (max-width: 430px) {
       .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
@@ -234,7 +255,32 @@
 </head>
 <body>
   <h1>Customer Job Scheduler</h1>
-  <main>
+  
+  <!-- Login/Signup Section -->
+  <div id="authSection" class="auth-section" style="display:none;">
+    <h2 id="authTitle">Login</h2>
+    <input type="text" id="authUsername" placeholder="Username" autocomplete="username">
+    <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
+    <button class="button" id="loginBtn">Login</button>
+    <button class="button secondary" id="switchToSignupBtn">Create Account</button>
+    <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="authError"></div>
+  </div>
+  <div id="signupSection" class="auth-section" style="display:none;">
+    <h2>Create Account</h2>
+    <input type="text" id="signupUsername" placeholder="Username" autocomplete="username">
+    <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password">
+    <button class="button" id="signupBtn">Sign Up</button>
+    <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
+    <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
+  </div>
+  
+  <!-- User Status Bar -->
+  <div id="authStatusBar" class="auth-status-bar" style="display:none;">
+    <span id="authWelcome"></span>
+    <button class="button secondary" id="logoutBtn">Logout</button>
+  </div>
+
+  <main id="mainApp" style="display:none;">
     <form id="job-form" autocomplete="off">
       <div class="form-group">
         <label for="customerName">Customer Name</label>
@@ -304,12 +350,120 @@
     </div>
   </main>
 <script>
-  // Jobs data in memory
+  // ==== CONFIG ====
+  const API_URL = 'https://pfback-dcuc.onrender.com'; // CHANGE THIS to your Render backend URL
+
+  // ==== AUTH STATE ====
+  let auth = { token: null, username: null };
   let jobs = [];
 
+  // ==== UI Elements ====
+  const $authSection    = document.getElementById('authSection');
+  const $signupSection  = document.getElementById('signupSection');
+  const $mainApp        = document.getElementById('mainApp');
+  const $authStatusBar  = document.getElementById('authStatusBar');
+  const $authWelcome    = document.getElementById('authWelcome');
+  const $logoutBtn      = document.getElementById('logoutBtn');
+
+  // ==== SHOW/HIDE UI ====
+  function showLogin() {
+    $authSection.style.display = 'block';
+    $signupSection.style.display = 'none';
+    $mainApp.style.display = 'none';
+    $authStatusBar.style.display = 'none';
+    document.getElementById('authTitle').innerText = 'Login';
+    document.getElementById('authError').innerText = '';
+    document.getElementById('authUsername').value = '';
+    document.getElementById('authPassword').value = '';
+  }
+  function showSignup() {
+    $signupSection.style.display = 'block';
+    $authSection.style.display = 'none';
+    $mainApp.style.display = 'none';
+    $authStatusBar.style.display = 'none';
+    document.getElementById('signupError').innerText = '';
+    document.getElementById('signupUsername').value = '';
+    document.getElementById('signupPassword').value = '';
+  }
+  function showMain() {
+    $authSection.style.display = 'none';
+    $signupSection.style.display = 'none';
+    $mainApp.style.display = '';
+    $authStatusBar.style.display = 'flex';
+    $authWelcome.innerText = `Logged in as ${auth.username}`;
+  }
+
+  // ==== AUTH EVENT HANDLERS ====
+  document.getElementById('loginBtn').onclick = async () => {
+    const username = document.getElementById('authUsername').value;
+    const password = document.getElementById('authPassword').value;
+    document.getElementById('authError').innerText = '';
+    try {
+      const r = await fetch(API_URL+'/api/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username, password})
+      });
+      const res = await r.json();
+      if (!res.ok) throw new Error(res.error || "Login failed");
+      auth.token = res.token;
+      auth.username = res.username;
+      localStorage.setItem('auth', JSON.stringify(auth));
+      await loadJobs();
+      showMain();
+    } catch(e) {
+      document.getElementById('authError').innerText = e.message;
+    }
+  };
+  document.getElementById('switchToSignupBtn').onclick = showSignup;
+  document.getElementById('switchToLoginBtn').onclick = showLogin;
+  document.getElementById('signupBtn').onclick = async () => {
+    const username = document.getElementById('signupUsername').value;
+    const password = document.getElementById('signupPassword').value;
+    document.getElementById('signupError').innerText = '';
+    try {
+      const r = await fetch(API_URL+'/api/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username, password})
+      });
+      const res = await r.json();
+      if (!res.ok) throw new Error(res.error || "Signup failed");
+      // After signup, switch to login
+      showLogin();
+      document.getElementById('authUsername').value = username;
+      document.getElementById('authPassword').value = '';
+    } catch(e) {
+      document.getElementById('signupError').innerText = e.message;
+    }
+  };
+  $logoutBtn.onclick = () => {
+    localStorage.removeItem('auth');
+    auth = {token:null, username:null};
+    showLogin();
+  };
+
+  // ==== LOAD/SAVE JOBS ====
+  async function loadJobs() {
+    if (!auth.token) return;
+    const r = await fetch(API_URL+'/api/load', {
+      method:'GET',
+      headers: {'Authorization': auth.token}
+    });
+    const res = await r.json();
+    jobs = res.jobs || [];
+    renderJobs();
+  }
+  async function saveJobs() {
+    if (!auth.token) return;
+    await fetch(API_URL+'/api/save', {
+      method:'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': auth.token},
+      body: JSON.stringify({jobs})
+    });
+  }
+
+  // ==== FORM AND TABLE FUNCTIONALITY ====
   // Helper: Get form data
   function getFormData() {
-    // Defensive: fallback to false if element is not found (shouldn't happen if HTML is correct)
     function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
     return {
       customerName: document.getElementById('customerName').value.trim(),
@@ -330,7 +484,6 @@
     document.getElementById('job-form').reset();
   }
 
-  // Render jobs table
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
@@ -346,7 +499,6 @@
     }
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
-      // Services chips
       let servicesHTML = "";
       if (job.electrical) servicesHTML += `<span class="chip">Electrical</span>`;
       if (job.plumbing) servicesHTML += `<span class="chip">Plumbing</span>`;
@@ -370,9 +522,8 @@
     });
   }
 
-  // Escape HTML to avoid XSS for user input
   function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, function (m) {
+    return String(str).replace(/[&<>"']/g, function (m) {
       return ({
         '&': '&amp;',
         '<': '&lt;',
@@ -383,11 +534,11 @@
     });
   }
 
-  // Delete job
   function deleteJob(idx) {
     if (confirm('Delete this job?')) {
       jobs.splice(idx, 1);
       renderJobs();
+      saveJobs();
     }
   }
 
@@ -395,16 +546,14 @@
   document.getElementById('job-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const job = getFormData();
-
-    // Validation (optional: check empty strings)
     if (!job.customerName || !job.jobDescription || !job.jobLocation ||
         !job.deliveryDate || !job.scheduledDate) {
       alert('Please fill in all required fields.');
       return;
     }
-
     jobs.push(job);
     renderJobs();
+    saveJobs();
     clearForm();
   });
 
@@ -440,10 +589,10 @@
       try {
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error("Invalid file");
-        // Simple schema check
         if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
         jobs = imported;
         renderJobs();
+        saveJobs();
         alert('Jobs imported!');
       } catch (err) {
         alert('Failed to import: ' + err.message);
@@ -453,8 +602,17 @@
     e.target.value = "";
   });
 
-  // Initial render
-  renderJobs();
+  // ==== APP INIT ====
+  window.onload = () => {
+    const saved = localStorage.getItem('auth');
+    if (saved) {
+      auth = JSON.parse(saved);
+      showMain();
+      loadJobs();
+    } else {
+      showLogin();
+    }
+  };
 </script>
 </body>
 </html>
