@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Job Scheduler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f7f7f7; }
+    h1 { text-align: center; }
+    form { background: #fff; padding: 1.5em; border-radius: 8px; box-shadow: 0 2px 8px #0001; max-width: 430px; margin: 0 auto 2em; }
+    label { display: block; margin-top: 1em; }
+    input[type="text"], input[type="date"] { width: 100%; padding: 0.4em; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 1.2em; margin-top: 0.5em; }
+    .checkbox-group label { display: flex; align-items: center; margin-top: 0; }
+    button, input[type="file"] { margin-top: 1.4em; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin: 0 auto; }
+    th, td { padding: 0.6em; border: 1px solid #ccc; text-align: left; }
+    th { background: #eee; }
+    .action-btn { padding: 0.2em 0.7em; border: none; border-radius: 4px; background: #ef5350; color: #fff; cursor: pointer; }
+    .action-btn:hover { background: #d32f2f; }
+    .export-import { margin: 2em auto 0; max-width: 430px; display: flex; justify-content: space-between; align-items: center; }
+    @media (max-width: 600px) {
+      form, .export-import { max-width: 100%; }
+      table, thead, tbody, th, td, tr { display: block; }
+      th, td { border: none; }
+      td { margin-bottom: 1em; }
+      th { background: none; font-weight: bold; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Customer Job Scheduler</h1>
+  <form id="job-form" autocomplete="off">
+    <label>
+      Customer Name
+      <input type="text" id="customerName" required>
+    </label>
+    <label>
+      Job Description
+      <input type="text" id="jobDescription" required>
+    </label>
+    <label>
+      Job Location
+      <input type="text" id="jobLocation" required>
+    </label>
+    <label>
+      Delivery Date
+      <input type="date" id="deliveryDate" required>
+    </label>
+    <label>
+      Scheduled Date
+      <input type="date" id="scheduledDate" required>
+    </label>
+
+    <label>Services</label>
+    <div class="checkbox-group">
+      <label><input type="checkbox" id="electrical"> Electrical</label>
+      <label><input type="checkbox" id="plumbing"> Plumbing</label>
+      <label><input type="checkbox" id="cabinetry"> Cabinetry</label>
+      <label><input type="checkbox" id="countertops"> Countertops</label>
+    </div>
+    <div class="checkbox-group" style="margin-top: 0.6em;">
+      <label><input type="checkbox" id="haulAway"> Haul Away</label>
+    </div>
+    <div class="checkbox-group" id="valveGroup" style="display: none; margin-top: 0.6em;">
+      <label><input type="checkbox" id="valve"> Valve</label>
+    </div>
+    <button type="submit">Add Job</button>
+  </form>
+
+  <div class="export-import">
+    <button id="exportBtn">Export Jobs</button>
+    <label style="margin:0;">
+      <input type="file" id="importFile" accept=".json" style="display:none;">
+      <button type="button" onclick="document.getElementById('importFile').click();">Import Jobs</button>
+    </label>
+  </div>
+
+  <h2 style="margin-top:2em;">Job List</h2>
+  <table id="jobTable">
+    <thead>
+      <tr>
+        <th>Customer Name</th>
+        <th>Job Description</th>
+        <th>Location</th>
+        <th>Delivery Date</th>
+        <th>Scheduled Date</th>
+        <th>Services</th>
+        <th>Haul Away</th>
+        <th>Valve</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Jobs will be listed here -->
+    </tbody>
+  </table>
+
+<script>
+  // Local jobs data
+  let jobs = [];
+
+  // Utility: get form values
+  function getFormData() {
+    return {
+      customerName: document.getElementById('customerName').value.trim(),
+      jobDescription: document.getElementById('jobDescription').value.trim(),
+      jobLocation: document.getElementById('jobLocation').value.trim(),
+      deliveryDate: document.getElementById('deliveryDate').value,
+      scheduledDate: document.getElementById('scheduledDate').value,
+      electrical: document.getElementById('electrical').checked,
+      plumbing: document.getElementById('plumbing').checked,
+      cabinetry: document.getElementById('cabinetry').checked,
+      countertops: document.getElementById('countertops').checked,
+      haulAway: document.getElementById('haulAway').checked,
+      valve: document.getElementById('valve').checked
+    };
+  }
+
+  function clearForm() {
+    document.getElementById('job-form').reset();
+    document.getElementById('valve').checked = false;
+    document.getElementById('valveGroup').style.display = "none";
+  }
+
+  function renderJobs() {
+    const tbody = document.getElementById('jobTable').querySelector('tbody');
+    tbody.innerHTML = '';
+    if (jobs.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 9;
+      td.style.textAlign = "center";
+      td.textContent = "No jobs yet.";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    jobs.forEach((job, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${job.customerName}</td>
+        <td>${job.jobDescription}</td>
+        <td>${job.jobLocation}</td>
+        <td>${job.deliveryDate}</td>
+        <td>${job.scheduledDate}</td>
+        <td>
+          ${job.electrical ? 'Electrical<br>' : ''}
+          ${job.plumbing ? 'Plumbing<br>' : ''}
+          ${job.cabinetry ? 'Cabinetry<br>' : ''}
+          ${job.countertops ? 'Countertops' : ''}
+        </td>
+        <td>${job.haulAway ? 'Yes' : 'No'}</td>
+        <td>${job.valve ? 'Yes' : 'No'}</td>
+        <td><button class="action-btn" onclick="deleteJob(${idx})">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deleteJob(idx) {
+    if (confirm('Delete this job?')) {
+      jobs.splice(idx, 1);
+      renderJobs();
+    }
+  }
+
+  // Show/hide valve checkbox if needed
+  function checkValveVisibility() {
+    const desc = document.getElementById('jobDescription').value.toLowerCase();
+    const showValve = desc.includes('dishwasher') || desc.includes('dw');
+    const valveGroup = document.getElementById('valveGroup');
+    if (showValve) {
+      valveGroup.style.display = "";
+    } else {
+      valveGroup.style.display = "none";
+      document.getElementById('valve').checked = false;
+    }
+  }
+
+  // Event: Show valve field if required
+  document.getElementById('jobDescription').addEventListener('input', checkValveVisibility);
+
+  // Handle add job
+  document.getElementById('job-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const job = getFormData();
+    jobs.push(job);
+    renderJobs();
+    clearForm();
+  });
+
+  // Export jobs to JSON
+  document.getElementById('exportBtn').addEventListener('click', function() {
+    const data = JSON.stringify(jobs, null, 2);
+    const blob = new Blob([data], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'jobs-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Import jobs from JSON
+  document.getElementById('importFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error("Invalid file");
+        // Simple schema check
+        if (imported.length && !imported[0].customerName) throw new Error("Invalid job format");
+        jobs = imported;
+        renderJobs();
+        alert('Jobs imported!');
+      } catch (err) {
+        alert('Failed to import: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  // Initial render
+  renderJobs();
+</script>
+</body>
+</html>
