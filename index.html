@@ -258,6 +258,10 @@
   </style>
 </head>
 <body>
+  <div id="authStatusBar" class="auth-status-bar" style="display:none;">
+    <span id="authWelcome"></span>
+    <button class="button secondary" id="logoutBtn">Logout</button>
+  </div>
   <h1>Customer Job Scheduler</h1>
   <div class="subtitle">For Pacific Express Installations</div>
   <div id="backendStatusBar" style="display:flex;justify-content:center;align-items:center;margin-top:2em;">
@@ -281,10 +285,6 @@
     <button class="button" id="signupBtn">Sign Up</button>
     <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
     <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
-  </div>
-  <div id="authStatusBar" class="auth-status-bar" style="display:none;">
-    <span id="authWelcome"></span>
-    <button class="button secondary" id="logoutBtn">Logout</button>
   </div>
   <main id="mainApp" style="display:none;">
     <form id="job-form" autocomplete="off">
