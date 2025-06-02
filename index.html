@@ -4,103 +4,320 @@
   <meta charset="UTF-8">
   <title>Customer Job Scheduler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Modern Google Fonts and minimal CSS reset -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; background: #f7f7f7; }
-    h1 { text-align: center; }
-    form { background: #fff; padding: 1.5em; border-radius: 8px; box-shadow: 0 2px 8px #0001; max-width: 430px; margin: 0 auto 2em; }
-    label { display: block; margin-top: 1em; }
-    input[type="text"], input[type="date"] { width: 100%; padding: 0.4em; }
-    .checkbox-group { display: flex; flex-wrap: wrap; gap: 1.2em; margin-top: 0.5em; }
-    .checkbox-group label { display: flex; align-items: center; margin-top: 0; }
-    button, input[type="file"] { margin-top: 1.4em; }
-    table { width: 100%; border-collapse: collapse; background: #fff; margin: 0 auto; }
-    th, td { padding: 0.6em; border: 1px solid #ccc; text-align: left; }
-    th { background: #eee; }
-    .action-btn { padding: 0.2em 0.7em; border: none; border-radius: 4px; background: #ef5350; color: #fff; cursor: pointer; }
-    .action-btn:hover { background: #d32f2f; }
-    .export-import { margin: 2em auto 0; max-width: 430px; display: flex; justify-content: space-between; align-items: center; }
-    @media (max-width: 600px) {
-      form, .export-import { max-width: 100%; }
-      table, thead, tbody, th, td, tr { display: block; }
-      th, td { border: none; }
-      td { margin-bottom: 1em; }
-      th { background: none; font-weight: bold; }
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --secondary: #f1f5f9;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --border: #e5e7eb;
+      --radius: 10px;
+      --shadow: 0 4px 24px 0 #0001;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--secondary);
+      color: #222;
+      min-height: 100vh;
+      padding: 0 0 4em 0;
+    }
+    h1, h2 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 0.3em;
+      letter-spacing: -1px;
+    }
+    h1 { margin-top: 2em; font-size: 2.2rem; color: var(--primary); }
+    h2 { margin-top: 2.7em; font-size: 1.3rem; }
+    main {
+      max-width: 900px;
+      margin: 2em auto 0 auto;
+      padding: 2em 1em 1em 1em;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.3em 2em;
+      align-items: flex-end;
+      background: #f8fafc;
+      border-radius: var(--radius);
+      padding: 2em 1em 1em 1em;
+      box-shadow: 0 2px 10px #0001;
+      margin-bottom: 2em;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+    }
+    .form-group label {
+      font-weight: 500;
+      color: #444;
+      letter-spacing: 0.01em;
+    }
+    .checkboxes, .single-checkbox {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8em 1.5em;
+      min-height: 38px;
+      align-items: center;
+      margin-top: 0.2em;
+    }
+    .single-checkbox {
+      gap: 0.8em;
+    }
+    input[type="text"], input[type="date"] {
+      padding: 0.7em 1em;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 1rem;
+      background: #fff;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus, input[type="date"]:focus {
+      border: 1.5px solid var(--primary);
+      outline: none;
+    }
+    input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin-right: 0.4em;
+    }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1em;
+      margin-top: 1.2em;
+    }
+    button, .button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.7em 1.8em;
+      font-size: 1.03rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 8px #2563eb12;
+      transition: background 0.18s, box-shadow 0.18s;
+    }
+    button[type="button"], .button.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      box-shadow: none;
+    }
+    button:hover, .button:hover {
+      background: var(--primary-hover);
+      color: #fff;
+    }
+    button[type="button"]:hover, .button.secondary:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .button.danger, .action-btn {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+    }
+    .button.danger:hover, .action-btn:hover {
+      background: var(--danger-hover);
+    }
+
+    /* Table Styles */
+    .table-wrapper {
+      overflow-x: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px #0001;
+      margin-top: 1.5em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+      font-size: 1rem;
+      background: #fff;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.95em 0.8em;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      color: #222;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      color: #444;
+      font-size: 0.99rem;
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .action-btn {
+      padding: 0.38em 1.2em;
+      font-size: 1rem;
+      border-radius: 5px;
+      margin-right: 0.1em;
+      margin-bottom: 0.1em;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .empty-row td {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      background: #f9fafb;
+    }
+    .chip {
+      display: inline-block;
+      padding: 0.21em 0.8em;
+      border-radius: 12px;
+      background: #f0f8ff;
+      color: var(--primary);
+      font-size: 0.98em;
+      margin-right: 0.2em;
+      margin-bottom: 0.2em;
+      font-weight: 500;
+      border: 1px solid var(--primary);
+    }
+
+    /* Export/Import Bar */
+    .export-import-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 1.1em;
+      margin-top: 0.7em;
+      margin-bottom: 1.5em;
+    }
+    .export-import-bar input[type="file"] {
+      display: none;
+    }
+    .export-import-bar label {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      main { padding: 1em 0.1em 1em 0.1em; }
+      form { grid-template-columns: 1fr; gap: 1.1em 0.5em; }
+      .table-wrapper { min-width: 0; }
+      table { min-width: 0; font-size: 0.98em; }
+      th, td { padding: 0.7em 0.5em; }
+    }
+    @media (max-width: 430px) {
+      .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
+      .form-actions { flex-direction: column; gap: 0.6em; }
     }
   </style>
 </head>
 <body>
   <h1>Customer Job Scheduler</h1>
-  <form id="job-form" autocomplete="off">
-    <label>
-      Customer Name
-      <input type="text" id="customerName" required>
-    </label>
-    <label>
-      Job Description
-      <input type="text" id="jobDescription" required>
-    </label>
-    <label>
-      Job Location
-      <input type="text" id="jobLocation" required>
-    </label>
-    <label>
-      Delivery Date
-      <input type="date" id="deliveryDate" required>
-    </label>
-    <label>
-      Scheduled Date
-      <input type="date" id="scheduledDate" required>
-    </label>
+  <main>
+    <form id="job-form" autocomplete="off">
+      <div class="form-group">
+        <label for="customerName">Customer Name</label>
+        <input type="text" id="customerName" required autocomplete="off" placeholder="Enter customer name...">
+      </div>
+      <div class="form-group">
+        <label for="jobDescription">Job Description</label>
+        <input type="text" id="jobDescription" required autocomplete="off" placeholder="E.g. Install Dishwasher">
+      </div>
+      <div class="form-group">
+        <label for="jobLocation">Job Location</label>
+        <input type="text" id="jobLocation" required autocomplete="off" placeholder="Enter job address or site...">
+      </div>
+      <div class="form-group">
+        <label for="deliveryDate">Delivery Date</label>
+        <input type="date" id="deliveryDate" required>
+      </div>
+      <div class="form-group">
+        <label for="scheduledDate">Scheduled Date</label>
+        <input type="date" id="scheduledDate" required>
+      </div>
+      <div class="form-group" style="grid-column: span 2;">
+        <label>Services</label>
+        <div class="checkboxes">
+          <label><input type="checkbox" id="electrical"> Electrical</label>
+          <label><input type="checkbox" id="plumbing"> Plumbing</label>
+          <label><input type="checkbox" id="cabinetry"> Cabinetry</label>
+          <label><input type="checkbox" id="countertops"> Countertops</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Haul Away</label>
+        <div class="single-checkbox">
+          <label><input type="checkbox" id="haulAway"> Yes</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valve</label>
+        <div class="single-checkbox">
+          <label><input type="checkbox" id="valve"> Needed</label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit">Add Job</button>
+        <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
+      </div>
+    </form>
 
-    <label>Services</label>
-    <div class="checkbox-group">
-      <label><input type="checkbox" id="electrical"> Electrical</label>
-      <label><input type="checkbox" id="plumbing"> Plumbing</label>
-      <label><input type="checkbox" id="cabinetry"> Cabinetry</label>
-      <label><input type="checkbox" id="countertops"> Countertops</label>
+    <div class="export-import-bar">
+      <button class="button" id="exportBtn">Export Jobs</button>
+      <label>
+        <input type="file" id="importFile" accept=".json">
+        <span class="button secondary" tabindex="0">Import Jobs</span>
+      </label>
     </div>
-    <div class="checkbox-group" style="margin-top: 0.6em;">
-      <label><input type="checkbox" id="haulAway"> Haul Away</label>
+
+    <h2>Job List</h2>
+    <div class="table-wrapper">
+      <table id="jobTable">
+        <thead>
+          <tr>
+            <th>Customer Name</th>
+            <th>Job Description</th>
+            <th>Location</th>
+            <th>Delivery Date</th>
+            <th>Scheduled Date</th>
+            <th>Services</th>
+            <th>Haul Away</th>
+            <th>Valve</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Entries rendered by JS -->
+        </tbody>
+      </table>
     </div>
-    <div class="checkbox-group" id="valveGroup" style="display: none; margin-top: 0.6em;">
-      <label><input type="checkbox" id="valve"> Valve</label>
-    </div>
-    <button type="submit">Add Job</button>
-  </form>
-
-  <div class="export-import">
-    <button id="exportBtn">Export Jobs</button>
-    <label style="margin:0;">
-      <input type="file" id="importFile" accept=".json" style="display:none;">
-      <button type="button" onclick="document.getElementById('importFile').click();">Import Jobs</button>
-    </label>
-  </div>
-
-  <h2 style="margin-top:2em;">Job List</h2>
-  <table id="jobTable">
-    <thead>
-      <tr>
-        <th>Customer Name</th>
-        <th>Job Description</th>
-        <th>Location</th>
-        <th>Delivery Date</th>
-        <th>Scheduled Date</th>
-        <th>Services</th>
-        <th>Haul Away</th>
-        <th>Valve</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Jobs will be listed here -->
-    </tbody>
-  </table>
-
+  </main>
 <script>
-  // Local jobs data
+  // Jobs data in memory
   let jobs = [];
 
-  // Utility: get form values
+  // Helper: Get form data
   function getFormData() {
     return {
       customerName: document.getElementById('customerName').value.trim(),
@@ -119,45 +336,62 @@
 
   function clearForm() {
     document.getElementById('job-form').reset();
-    document.getElementById('valve').checked = false;
-    document.getElementById('valveGroup').style.display = "none";
   }
 
+  // Render jobs table
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
     if (jobs.length === 0) {
       const tr = document.createElement('tr');
+      tr.className = 'empty-row';
       const td = document.createElement('td');
       td.colSpan = 9;
-      td.style.textAlign = "center";
-      td.textContent = "No jobs yet.";
+      td.textContent = "No jobs yet. Please add a job above.";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
     }
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
+      // Services chips
+      let servicesHTML = "";
+      if (job.electrical) servicesHTML += `<span class="chip">Electrical</span>`;
+      if (job.plumbing) servicesHTML += `<span class="chip">Plumbing</span>`;
+      if (job.cabinetry) servicesHTML += `<span class="chip">Cabinetry</span>`;
+      if (job.countertops) servicesHTML += `<span class="chip">Countertops</span>`;
+      if (!servicesHTML) servicesHTML = `<span style="color:#aaa;font-style:italic;">None</span>`;
       tr.innerHTML = `
-        <td>${job.customerName}</td>
-        <td>${job.jobDescription}</td>
-        <td>${job.jobLocation}</td>
-        <td>${job.deliveryDate}</td>
-        <td>${job.scheduledDate}</td>
+        <td>${escapeHTML(job.customerName)}</td>
+        <td>${escapeHTML(job.jobDescription)}</td>
+        <td>${escapeHTML(job.jobLocation)}</td>
+        <td>${escapeHTML(job.deliveryDate)}</td>
+        <td>${escapeHTML(job.scheduledDate)}</td>
+        <td>${servicesHTML}</td>
+        <td>${job.haulAway ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
+        <td>${job.valve ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
         <td>
-          ${job.electrical ? 'Electrical<br>' : ''}
-          ${job.plumbing ? 'Plumbing<br>' : ''}
-          ${job.cabinetry ? 'Cabinetry<br>' : ''}
-          ${job.countertops ? 'Countertops' : ''}
+          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
         </td>
-        <td>${job.haulAway ? 'Yes' : 'No'}</td>
-        <td>${job.valve ? 'Yes' : 'No'}</td>
-        <td><button class="action-btn" onclick="deleteJob(${idx})">Delete</button></td>
       `;
       tbody.appendChild(tr);
     });
   }
 
+  // Escape HTML to avoid XSS for user input
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function (m) {
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[m];
+    });
+  }
+
+  // Delete job
   function deleteJob(idx) {
     if (confirm('Delete this job?')) {
       jobs.splice(idx, 1);
@@ -165,44 +399,47 @@
     }
   }
 
-  // Show/hide valve checkbox if needed
-  function checkValveVisibility() {
-    const desc = document.getElementById('jobDescription').value.toLowerCase();
-    const showValve = desc.includes('dishwasher') || desc.includes('dw');
-    const valveGroup = document.getElementById('valveGroup');
-    if (showValve) {
-      valveGroup.style.display = "";
-    } else {
-      valveGroup.style.display = "none";
-      document.getElementById('valve').checked = false;
-    }
-  }
-
-  // Event: Show valve field if required
-  document.getElementById('jobDescription').addEventListener('input', checkValveVisibility);
-
-  // Handle add job
+  // Handle form submit
   document.getElementById('job-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const job = getFormData();
+
+    // Validation (optional: check empty strings)
+    if (!job.customerName || !job.jobDescription || !job.jobLocation ||
+        !job.deliveryDate || !job.scheduledDate) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
     jobs.push(job);
     renderJobs();
     clearForm();
   });
 
-  // Export jobs to JSON
+  // Handle clear form
+  document.getElementById('clearBtn').addEventListener('click', function() {
+    clearForm();
+  });
+
+  // Export jobs
   document.getElementById('exportBtn').addEventListener('click', function() {
+    if(!jobs.length) {
+      alert("No jobs to export.");
+      return;
+    }
     const data = JSON.stringify(jobs, null, 2);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'jobs-export.json';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   });
 
-  // Import jobs from JSON
+  // Import jobs
   document.getElementById('importFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -212,7 +449,7 @@
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error("Invalid file");
         // Simple schema check
-        if (imported.length && !imported[0].customerName) throw new Error("Invalid job format");
+        if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
         jobs = imported;
         renderJobs();
         alert('Jobs imported!');
