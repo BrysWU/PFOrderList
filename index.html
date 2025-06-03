@@ -653,7 +653,7 @@
   };
   async function loadJobs() {
     if (!auth.token) return;
-    const r = await fetch(API_URL+'/api/load', {
+    const r = await fetch(API_URL+'/api/jobs', {
       method:'GET',
       headers: {'Authorization': auth.token}
     });
