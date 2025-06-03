@@ -409,7 +409,6 @@
     }
     .auth-status-bar span { font-weight: 600; color: var(--primary); }
     body.dark .auth-status-bar span { color: #99b7ff; }
-    /* Animations for backend status bar */
     #backendStatusBar {
       animation: fade-in 1.3s;
     }
@@ -470,12 +469,8 @@
         <input type="text" id="customerName" required autocomplete="off" placeholder="Enter customer name...">
       </div>
       <div class="form-group">
-        <label for="jobTitle">Job Title</label>
-        <input type="text" id="jobTitle" required autocomplete="off" placeholder="E.g. Dishwasher Install">
-      </div>
-      <div class="form-group">
         <label for="jobDescription">Job Description</label>
-        <input type="text" id="jobDescription" required autocomplete="off" placeholder="E.g. Customer requests install in kitchen">
+        <input type="text" id="jobDescription" required autocomplete="off" placeholder="E.g. Install Dishwasher">
       </div>
       <div class="form-group">
         <label for="jobLocation">Job Location</label>
@@ -518,7 +513,6 @@
         <thead>
           <tr>
             <th>Customer Name</th>
-            <th>Job Title</th>
             <th>Job Description</th>
             <th>Location</th>
             <th>Delivery Date</th>
@@ -660,7 +654,6 @@
     function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
     return {
       customerName: document.getElementById('customerName').value.trim(),
-      jobTitle: document.getElementById('jobTitle').value.trim(),
       jobDescription: document.getElementById('jobDescription').value.trim(),
       jobLocation: document.getElementById('jobLocation').value.trim(),
       deliveryDate: document.getElementById('deliveryDate').value,
@@ -690,7 +683,7 @@
       const tr = document.createElement('tr');
       tr.className = 'empty-row';
       const td = document.createElement('td');
-      td.colSpan = 10;
+      td.colSpan = 9;
       td.textContent = "No jobs yet. Please add a job above.";
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -713,7 +706,6 @@
         : `<span class="chip chip-red">No Countertops</span>`;
       tr.innerHTML = `
         <td>${escapeHTML(job.customerName)}</td>
-        <td>${escapeHTML(job.jobTitle)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
         <td>${escapeHTML(job.jobLocation)}</td>
         <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
@@ -749,7 +741,7 @@
   document.getElementById('job-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const job = getFormData();
-    if (!job.customerName || !job.jobTitle || !job.jobDescription || !job.jobLocation ||
+    if (!job.customerName || !job.jobDescription || !job.jobLocation ||
         !job.deliveryDate || !job.scheduledDate) {
       alert('Please fill in all required fields.');
       return;
@@ -788,7 +780,7 @@
       try {
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error("Invalid file");
-        if (imported.length && (!imported[0].customerName || !imported[0].jobTitle || !imported[0].jobDescription)) throw new Error("Invalid job format");
+        if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
         for (const job of imported) {
           await addJob(job);
         }
