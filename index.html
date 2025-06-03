@@ -530,48 +530,8 @@
     </div>
   </main>
 <script>
-  const API_URL = 'https://pfback-dcuc.onrender.com'; // CHANGE THIS!
-  const backendStatusBar = document.getElementById('backendStatusBar');
-  const backendStatusMsg = document.getElementById('backendStatusMsg');
-  const backendStatusIcon = document.getElementById('backendStatusIcon');
-  let backendReady = false;
-  let backendAttempts = 0;
-  function checkBackend() {
-    backendAttempts++;
-    backendStatusMsg.innerText = backendAttempts === 1
-      ? "Checking backend status..."
-      : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
-    backendStatusIcon.innerText = "🔄";
-    fetch(API_URL + "/", { method: "GET", cache: "no-store" })
-      .then(async r => {
-        if (r.ok) {
-          backendReady = true;
-          // If we've just reloaded, don't reload again; else, reload once
-          if (!sessionStorage.getItem('backendJustReloaded')) {
-            sessionStorage.setItem('backendJustReloaded', '1');
-            backendStatusMsg.innerText = "Backend is ready! Reloading...";
-            backendStatusIcon.innerText = "✅";
-            setTimeout(() => {
-              location.reload();
-            }, 900);
-          } else {
-            sessionStorage.removeItem('backendJustReloaded');
-            backendStatusIcon.innerText = "✅";
-            backendStatusMsg.innerText = "Backend is ready!";
-            setTimeout(() => {
-              backendStatusBar.style.display = "none";
-              startApp();
-            }, 700);
-          }
-        } else throw new Error();
-      })
-      .catch(err => {
-        backendReady = false;
-        backendStatusIcon.innerText = "💤";
-        backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
-        setTimeout(() => checkBackend(), 4000);
-      });
-  }
+  const API_URL = 'https://pfback-dcuc.onrender.com';
+
   let auth = { token: null, username: null };
   let jobs = [];
   const $authSection    = document.getElementById('authSection');
@@ -580,6 +540,7 @@
   const $authStatusBar  = document.getElementById('authStatusBar');
   const $authWelcome    = document.getElementById('authWelcome');
   const $logoutBtn      = document.getElementById('logoutBtn');
+
   function showLogin() {
     $authSection.style.display = 'block';
     $signupSection.style.display = 'none';
@@ -661,13 +622,34 @@
     jobs = res.jobs || [];
     renderJobs();
   }
-  async function saveJobs() {
+  async function addJob(job) {
     if (!auth.token) return;
-    await fetch(API_URL+'/api/save', {
+    const res = await fetch(API_URL+'/api/jobs', {
       method:'POST',
       headers: {'Content-Type':'application/json', 'Authorization': auth.token},
-      body: JSON.stringify({jobs})
+      body: JSON.stringify(job)
     });
+    const data = await res.json();
+    if (data.ok) {
+      await loadJobs();
+    } else {
+      alert(data.error || "Failed to add job.");
+    }
+  }
+  async function deleteJob(idx) {
+    const job = jobs[idx];
+    if (!job || !job.id) return alert("Job not found.");
+    if (!confirm('Delete this job?')) return;
+    const res = await fetch(API_URL + '/api/jobs/' + job.id, {
+      method: 'DELETE',
+      headers: {'Authorization': auth.token}
+    });
+    const data = await res.json();
+    if (data.ok) {
+      await loadJobs();
+    } else {
+      alert(data.error || "Failed to delete job.");
+    }
   }
   function getFormData() {
     function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
@@ -682,7 +664,9 @@
       cabinetry: isChecked('cabinetry'),
       countertops: isChecked('countertops'),
       haulAway: isChecked('haulAway'),
-      valve: isChecked('valve')
+      valve: isChecked('valve'),
+      status: 'scheduled',
+      amount: 0
     };
   }
   function clearForm() {
@@ -709,7 +693,6 @@
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
       let servicesHTML = "";
-      // Blue if checked, red if not checked
       servicesHTML += job.electrical
         ? `<span class="chip">Electrical</span>`
         : `<span class="chip chip-red">No Electrical</span>`;
@@ -722,7 +705,6 @@
       servicesHTML += job.countertops
         ? `<span class="chip">Countertops</span>`
         : `<span class="chip chip-red">No Countertops</span>`;
-
       tr.innerHTML = `
         <td>${escapeHTML(job.customerName)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
@@ -738,7 +720,6 @@
       `;
       tbody.appendChild(tr);
     });
-    // Animate table rows when jobs change
     Array.from(tbody.children).forEach((row, i) => {
       row.style.opacity = 0;
       setTimeout(() => {
@@ -758,14 +739,7 @@
       })[m];
     });
   }
-  function deleteJob(idx) {
-    if (confirm('Delete this job?')) {
-      jobs.splice(idx, 1);
-      renderJobs();
-      saveJobs();
-    }
-  }
-  document.getElementById('job-form').addEventListener('submit', function(e) {
+  document.getElementById('job-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const job = getFormData();
     if (!job.customerName || !job.jobDescription || !job.jobLocation ||
@@ -773,11 +747,8 @@
       alert('Please fill in all required fields.');
       return;
     }
-    jobs.push(job);
-    renderJobs();
-    saveJobs();
+    await addJob(job);
     clearForm();
-    // Animate form submission
     let main = document.getElementById('mainApp');
     main.classList.remove('form-added');
     setTimeout(() => main.classList.add('form-added'), 10);
@@ -806,14 +777,15 @@
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(ev) {
+    reader.onload = async function(ev) {
       try {
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error("Invalid file");
         if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
-        jobs = imported;
-        renderJobs();
-        saveJobs();
+        for (const job of imported) {
+          await addJob(job);
+        }
+        await loadJobs();
         alert('Jobs imported!');
       } catch (err) {
         alert('Failed to import: ' + err.message);
@@ -822,6 +794,46 @@
     reader.readAsText(file);
     e.target.value = "";
   });
+  const backendStatusBar = document.getElementById('backendStatusBar');
+  const backendStatusMsg = document.getElementById('backendStatusMsg');
+  const backendStatusIcon = document.getElementById('backendStatusIcon');
+  let backendReady = false;
+  let backendAttempts = 0;
+  function checkBackend() {
+    backendAttempts++;
+    backendStatusMsg.innerText = backendAttempts === 1
+      ? "Checking backend status..."
+      : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
+    backendStatusIcon.innerText = "🔄";
+    fetch(API_URL + "/", { method: "GET", cache: "no-store" })
+      .then(async r => {
+        if (r.ok) {
+          backendReady = true;
+          if (!sessionStorage.getItem('backendJustReloaded')) {
+            sessionStorage.setItem('backendJustReloaded', '1');
+            backendStatusMsg.innerText = "Backend is ready! Reloading...";
+            backendStatusIcon.innerText = "✅";
+            setTimeout(() => {
+              location.reload();
+            }, 900);
+          } else {
+            sessionStorage.removeItem('backendJustReloaded');
+            backendStatusIcon.innerText = "✅";
+            backendStatusMsg.innerText = "Backend is ready!";
+            setTimeout(() => {
+              backendStatusBar.style.display = "none";
+              startApp();
+            }, 700);
+          }
+        } else throw new Error();
+      })
+      .catch(err => {
+        backendReady = false;
+        backendStatusIcon.innerText = "💤";
+        backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
+        setTimeout(() => checkBackend(), 4000);
+      });
+  }
   function startApp() {
     const saved = localStorage.getItem('auth');
     if (saved) {
@@ -832,7 +844,6 @@
       showLogin();
     }
   }
-  // Dark Mode Toggle Functionality
   const darkToggle = document.getElementById('darkToggle');
   const sunIcon = document.getElementById('sunIcon');
   const moonIcon = document.getElementById('moonIcon');
@@ -857,7 +868,6 @@
   darkToggle.onclick = function() {
     setDarkMode(!document.body.classList.contains('dark'));
   };
-  // Auto-load user preference
   if (localStorage.getItem('darkMode')) setDarkMode(true);
 
   window.onload = () => {
@@ -868,6 +878,7 @@
     $authStatusBar.style.display = "none";
     checkBackend();
   };
+  window.deleteJob = deleteJob;
 </script>
 </body>
 </html>
