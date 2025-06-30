@@ -19,114 +19,49 @@
       --dark-bg: #18181b;
       --dark-card: #232337;
       --dark-text: #f4f4f4;
-      --dark-secondary: #27273a;
-      --dark-border: #39395a;
-      --dark-chip: #34345c;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', Arial, sans-serif;
-      background: var(--secondary);
-      color: #222;
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 0;
       min-height: 100vh;
-      padding: 0 0 4em 0;
-      transition: background var(--transition), color var(--transition);
     }
     body.dark {
       background: var(--dark-bg);
       color: var(--dark-text);
     }
-    h1, h2 {
-      text-align: center;
-      font-weight: 600;
-      margin-bottom: 0.3em;
-      letter-spacing: -1px;
-      transition: color var(--transition);
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2em 1em 3em 1em;
     }
-    h1 { margin-top: 2em; font-size: 2.2rem; color: var(--primary);}
-    body.dark h1 { color: #99b7ff; }
+    h1 {
+      font-size: 2.1em;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.2em;
+    }
     .subtitle {
-      text-align: center;
+      color: #555;
       font-size: 1.2em;
-      color: #333;
       margin-bottom: 1.5em;
-      opacity: 0.86;
-      transition: color var(--transition);
     }
-    body.dark .subtitle { color: #bcbcf7; }
-    h2 { font-size: 1.3rem; }
-    main {
-      max-width: 75vw;
-      margin: 2em auto 0 auto;
-      padding: 2.5em 1.5em 1.5em 1.5em;
+    body.dark .subtitle { color: #d6d6ff; }
+    .auth-section, main {
+      max-width: 500px;
+      margin: 2.5em auto 0 auto;
       background: #fff;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      transition: background var(--transition), box-shadow var(--transition);
-      animation: mainpop 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 2em 2em 2em 2em;
+      transition: background 0.2s;
     }
-    @keyframes mainpop {
-      0% { opacity: 0; transform: scale(0.98) translateY(30px);}
-      100% { opacity: 1; transform: scale(1) translateY(0);}
-    }
-    body.dark main {
+    body.dark .auth-section, body.dark main {
       background: var(--dark-card);
-      box-shadow: 0 6px 40px #0004;
-    }
-    .dark-toggle-btn {
-      position: absolute;
-      bottom: 1.2em;
-      right: 2.5em;
-      z-index: 100;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      padding: 0.4em 1.2em 0.4em 1em;
-      font-size: 1.05em;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 10px #2563eb18;
-      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-    }
-    .dark-toggle-btn svg {
-      height: 1.2em; width: 1.2em;
-      vertical-align: middle;
-      transition: transform 0.3s;
-    }
-    .dark-toggle-btn.active {
-      background: #222;
-      color: #99b7ff;
-    }
-    body.dark .dark-toggle-btn {
-      background: #222;
-      color: #99b7ff;
-      box-shadow: 0 2px 10px #0004;
-    }
-    form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.3em 2em;
-      align-items: flex-end;
-      background: #f8fafc;
-      border-radius: var(--radius);
-      padding: 2em 1em 1em 1em;
-      box-shadow: 0 2px 10px #0001;
-      margin-bottom: 2em;
-      transition: background var(--transition);
-      animation: fade-in 0.9s;
-    }
-    @keyframes fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    body.dark form {
-      background: #232337;
-      box-shadow: 0 2px 20px #0002;
     }
     .form-group {
       display: flex;
@@ -157,734 +92,586 @@
       border-radius: 7px;
       font-size: 1rem;
       background: #fff;
-      transition: border var(--transition), background var(--transition), color var(--transition);
+      color: #222;
+      transition: border var(--transition);
     }
-    body.dark input[type="text"],
-    body.dark input[type="date"] {
-      background: var(--dark-secondary);
-      border: 1.5px solid var(--dark-border);
-      color: var(--dark-text);
+    body.dark input[type="text"], body.dark input[type="date"] {
+      background: #262642;
+      color: #fafaff;
+      border: 1.5px solid #5858c7;
     }
     input[type="text"]:focus, input[type="date"]:focus {
-      border: 1.5px solid var(--primary);
+      border: 1.8px solid var(--primary);
       outline: none;
-    }
-    input[type="checkbox"] {
-      width: 18px; height: 18px;
-      accent-color: var(--primary);
-      cursor: pointer;
-      margin-right: 0.4em;
-      transition: accent-color var(--transition);
-    }
-    body.dark input[type="checkbox"] {
-      accent-color: #99b7ff;
-    }
-    .form-actions {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: flex-end;
-      gap: 1em;
-      margin-top: 1.2em;
     }
     button, .button {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
       padding: 0.7em 1.8em;
-      font-size: 1.03rem;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 3px 8px #2563eb12;
-      transition: background var(--transition), box-shadow var(--transition), color var(--transition);
-      outline: none;
-      position: relative;
-      overflow: hidden;
-    }
-    button[type="button"], .button.secondary {
-      background: #fff;
-      color: var(--primary);
-      border: 1.5px solid var(--primary);
-      box-shadow: none;
-      transition: background var(--transition), color var(--transition), border var(--transition);
-    }
-    body.dark button[type="button"], body.dark .button.secondary {
-      background: var(--dark-secondary);
-      color: #99b7ff;
-      border: 1.5px solid #99b7ff;
-    }
-    button:hover, .button:hover {
-      background: var(--primary-hover);
-      color: #fff;
-      box-shadow: 0 6px 24px #2563eb22;
-    }
-    button[type="button"]:hover, .button.secondary:hover {
+      border-radius: 8px;
+      border: none;
       background: var(--primary);
       color: #fff;
-    }
-    .button.danger, .action-btn {
-      background: var(--danger);
-      color: #fff;
-      border: none;
-    }
-    .button.danger:hover, .action-btn:hover {
-      background: var(--danger-hover);
-    }
-    .table-wrapper {
-      overflow-x: auto;
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 8px #0001;
-      margin-top: 1.5em;
-      transition: background var(--transition), box-shadow var(--transition);
-      animation: fade-in 1.1s;
-    }
-    body.dark .table-wrapper {
-      background: var(--dark-card);
-      box-shadow: 0 4px 24px #0003;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 950px;
-      font-size: 1rem;
-      background: #fff;
-      border-radius: var(--radius);
-      overflow: hidden;
-      transition: background var(--transition);
-    }
-    body.dark table {
-      background: var(--dark-card);
-    }
-    th, td {
-      padding: 0.95em 0.8em;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      transition: background var(--transition), color var(--transition), border var(--transition);
-    }
-    body.dark th, body.dark td {
-      border-bottom: 1px solid var(--dark-border);
-      color: var(--dark-text);
-    }
-    th {
-      background: #f1f5f9;
-      color: #222;
       font-weight: 600;
-      letter-spacing: 0.01em;
-      border-bottom: 2px solid var(--border);
-      transition: background var(--transition), color var(--transition), border var(--transition);
-    }
-    body.dark th {
-      background: var(--dark-secondary);
-      color: #99b7ff;
-      border-bottom: 2px solid var(--dark-border);
-    }
-    td {
-      color: #444;
-      font-size: 0.99rem;
-      vertical-align: middle;
-      transition: color var(--transition);
-    }
-    body.dark td {
-      color: #d5e4ff;
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    .action-btn {
-      padding: 0.38em 1.2em;
-      font-size: 1rem;
-      border-radius: 5px;
-      margin-right: 0.1em;
-      margin-bottom: 0.1em;
+      font-size: 1em;
       cursor: pointer;
-      transition: background 0.15s, transform 0.17s;
-      animation: pop-btn 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background var(--transition);
+      margin-right: 0.7em;
+      margin-top: 0.6em;
     }
-    .action-btn:active {
-      transform: scale(0.96);
+    .button.secondary, button.secondary {
+      background: var(--secondary);
+      color: #2563eb;
+      border: 1.5px solid #2563eb;
     }
-    @keyframes pop-btn {
-      0% { opacity: 0; transform: scale(0.8);}
-      100% { opacity: 1; transform: scale(1);}
+    .button:active, button:active {
+      background: var(--primary-hover);
     }
-    .empty-row td {
-      text-align: center;
-      color: #888;
-      font-style: italic;
-      background: #f9fafb;
-      transition: background var(--transition), color var(--transition);
+    .button.secondary:active, button.secondary:active {
+      background: #dde7f7;
     }
-    body.dark .empty-row td {
-      background: var(--dark-secondary);
-      color: #999fc8;
-    }
-    .chip {
-      display: inline-block;
-      padding: 0.21em 0.8em;
-      border-radius: 12px;
-      background: #f0f8ff;
-      color: var(--primary);
-      font-size: 0.98em;
-      margin-right: 0.2em;
-      margin-bottom: 0.2em;
-      font-weight: 500;
-      border: 1px solid var(--primary);
-      transition: background var(--transition), color var(--transition), border var(--transition);
-      animation: chip-pop 0.5s;
-    }
-    @keyframes chip-pop {
-      from { opacity: 0; transform: scale(0.7);}
-      to   { opacity: 1; transform: scale(1);}
-    }
-    body.dark .chip {
-      background: var(--dark-chip);
-      color: #89b8ff;
-      border: 1px solid #99b7ff;
-    }
-    .chip-red {
-      background: #fbeaea;
-      color: var(--danger);
-      border: 1px solid var(--danger);
-      transition: background var(--transition), color var(--transition), border var(--transition);
-    }
-    body.dark .chip-red {
-      background: #3a2636;
-      color: #ffb0b0;
-      border: 1px solid #ffb0b0;
+    .form-actions {
+      margin-top: 1.3em;
+      display: flex;
+      gap: 0.8em;
     }
     .export-import-bar {
+      margin: 1.7em 0 1.3em 0;
       display: flex;
-      justify-content: flex-end;
+      gap: 1em;
       align-items: center;
-      gap: 1.1em;
-      margin-top: 0.7em;
-      margin-bottom: 1.5em;
-      transition: color var(--transition);
     }
     .export-import-bar input[type="file"] {
       display: none;
     }
-    .export-import-bar label {
-      margin: 0;
-      cursor: pointer;
-    }
-    .auth-section {
-      max-width: 350px;
-      margin: 2em auto 2em auto;
-      background: #f8fafc;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.2em;
+      background: #f7f9fb;
       border-radius: var(--radius);
-      padding: 2em 1.5em 1.5em 1.5em;
-      box-shadow: 0 2px 10px #0001;
-      transition: background var(--transition), box-shadow var(--transition);
-      animation: fade-in 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
     }
-    body.dark .auth-section {
-      background: var(--dark-card);
-      box-shadow: 0 2px 18px #0003;
+    body.dark table {
+      background: #2a2a3d;
     }
-    .auth-section h2 { margin-bottom: 1em; text-align: center; }
-    .auth-section input[type="text"],
-    .auth-section input[type="password"] {
-      width: 100%; padding: 0.7em 1em; margin-bottom: 1em;
-      border: 1.5px solid var(--border); border-radius: 7px; font-size: 1rem;
-      background: #fff; transition: border var(--transition), background var(--transition), color var(--transition);
+    th, td {
+      padding: 0.8em 0.6em;
+      text-align: left;
+      font-size: 1em;
+      border-bottom: 1px solid #e3e6ef;
     }
-    body.dark .auth-section input[type="text"],
-    body.dark .auth-section input[type="password"] {
-      background: var(--dark-secondary);
-      border: 1.5px solid var(--dark-border);
-      color: var(--dark-text);
+    body.dark th, body.dark td {
+      border-bottom: 1px solid #35357c;
     }
-    .auth-section input[type="text"]:focus,
-    .auth-section input[type="password"]:focus {
-      border: 1.5px solid var(--primary);
+    th {
+      background: #eef2fa;
+      font-weight: 700;
     }
-    .auth-section .button { width: 100%; margin-bottom: 0.8em; }
+    body.dark th {
+      background: #23235e;
+      color: #bcbcf7;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .chip {
+      display: inline-block;
+      padding: 0.25em 0.9em;
+      font-size: 0.9em;
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #3739c7;
+      margin-right: 0.25em;
+      margin-bottom: 0.15em;
+    }
+    .chip-red { background: #ffe4e4; color: #e03f3f; }
     .auth-status-bar {
-      display: flex; justify-content: flex-end; align-items: center; gap: 1em;
-      margin: 1em; font-size: 1.05em;
-      transition: color var(--transition);
+      background: #e7f1ff;
+      color: #2563eb;
+      padding: 0.7em 1.3em;
+      border-radius: 8px;
+      margin-bottom: 1em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .auth-status-bar span { font-weight: 600; color: var(--primary); }
-    body.dark .auth-status-bar span { color: #99b7ff; }
-    #backendStatusBar {
-      animation: fade-in 1.3s;
+    body.dark .auth-status-bar { background: #1d1d2f; color: #a0b8f7; }
+    .dark-toggle-btn {
+      background: #fff;
+      border: 1.5px solid #2563eb;
+      color: #2563eb;
+      padding: 0.3em 1.1em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 1em;
+      font-size: 1em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
     }
-    @media (max-width: 700px) {
-      main { padding: 1em 0.1em 1em 0.1em; }
-      form { grid-template-columns: 1fr; gap: 1.1em 0.5em; }
-      .table-wrapper { min-width: 0; }
-      table { min-width: 0; font-size: 0.98em; }
-      th, td { padding: 0.7em 0.5em; }
-      .auth-section { max-width: 100%; }
-      .auth-status-bar { flex-direction: column; gap: 0.3em; align-items: flex-start; }
-      .dark-toggle-btn { right: 1em; top: 0.5em; }
+    body.dark .dark-toggle-btn {
+      background: #232337;
+      color: #bcbcf7;
+      border: 1.5px solid #5858c7;
     }
-    @media (max-width: 430px) {
-      .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
-      .form-actions { flex-direction: column; gap: 0.6em; }
+    .empty-row td {
+      text-align: center;
+      color: #a4a4c0;
+      font-style: italic;
+      padding: 2em 0;
+    }
+    @media (max-width: 800px) {
+      .container, .auth-section, main {
+        max-width: 100%;
+        padding: 1em;
+      }
+      table {
+        font-size: 0.97em;
+      }
+    }
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        display: none;
+      }
+      tr {
+        margin-bottom: 1.6em;
+        border-radius: 10px;
+        box-shadow: 0 2px 20px #0002;
+      }
+      td {
+        padding: 0.7em 1em;
+        border-bottom: 1px solid #e3e6ef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      td:before {
+        content: attr(data-label);
+        font-weight: 700;
+        flex: 1;
+        color: #334;
+        min-width: 130px;
+        margin-right: 1em;
+      }
     }
   </style>
 </head>
 <body>
-  <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
-    <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
-    <span id="darkToggleText">Dark Mode</span>
-  </button>
-  <div id="authStatusBar" class="auth-status-bar" style="display:none;">
-    <span id="authWelcome"></span>
-    <button class="button secondary" id="logoutBtn">Logout</button>
-  </div>
-  <h1>Customer Job Scheduler</h1>
-  <div class="subtitle">For Pacific Express Installations</div>
-  <div id="backendStatusBar" style="display:flex;justify-content:center;align-items:center;margin-top:2em;">
-    <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
-    <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
-      Checking backend status . . .
-    </span>
-  </div>
-  <div id="authSection" class="auth-section" style="display:none;">
-    <h2 id="authTitle">Login</h2>
-    <input type="text" id="authUsername" placeholder="Username" autocomplete="username">
-    <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
-    <button class="button" id="loginBtn">Login</button>
-    <button class="button secondary" id="switchToSignupBtn">Create Account</button>
-    <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="authError"></div>
-  </div>
-  <div id="signupSection" class="auth-section" style="display:none;">
-    <h2>Create Account</h2>
-    <input type="text" id="signupUsername" placeholder="Username" autocomplete="username">
-    <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password">
-    <button class="button" id="signupBtn">Sign Up</button>
-    <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
-    <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
-  </div>
-  <main id="mainApp" style="display:none;">
-    <form id="job-form" autocomplete="off">
-      <div class="form-group">
-        <label for="customerName">Customer Name</label>
-        <input type="text" id="customerName" required autocomplete="off" placeholder="Enter customer name...">
-      </div>
-      <div class="form-group">
-        <label for="jobDescription">Job Description</label>
-        <input type="text" id="jobDescription" required autocomplete="off" placeholder="E.g. Install Dishwasher">
-      </div>
-      <div class="form-group">
-        <label for="jobLocation">Job Location</label>
-        <input type="text" id="jobLocation" required autocomplete="off" placeholder="Enter job address or site...">
-      </div>
-      <div class="form-group">
-        <label for="deliveryDate">Delivery Date</label>
-        <input type="date" id="deliveryDate" required>
-      </div>
-      <div class="form-group">
-        <label for="scheduledDate">Proposed Scheduled Date</label>
-        <input type="date" id="proposedScheduledDate" required>
-      </div>
-      <div class="form-group">
-        <label for="scheduledDate">Scheduled Date</label>
-        <input type="date" id="scheduledDate" required>
-      </div>
-      <div class="form-group">
-        <label>Requirements</label>
-        <div class="checkboxes">
-          <label><input type="checkbox" id="electrical"> Electrical</label>
-          <label><input type="checkbox" id="plumbing"> Plumbing</label>
-          <label><input type="checkbox" id="cabinetry"> Cabinetry</label>
-          <label><input type="checkbox" id="countertops"> Countertops</label>
-          <label><input type="checkbox" id="haulAway"> Haul Away</label>
-          <label><input type="checkbox" id="valve"> Valve</label>
+  <div class="container">
+    <button class="dark-toggle-btn" id="darkToggle">
+      <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:1.2em;height:1.2em;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71m16.97 1.42l-.71-.71M4.05 4.93l-.71-.71M21 12h-1M4 12H3m15.66 7.66l-.71-.71M4.05 4.93l-.71-.71"/></svg>
+      <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
+      <span id="darkToggleText">Dark Mode</span>
+    </button>
+    <div id="authStatusBar" class="auth-status-bar" style="display:none;">
+      <span id="authWelcome"></span>
+      <button class="button secondary" id="logoutBtn">Logout</button>
+    </div>
+    <h1>Customer Job Scheduler</h1>
+    <div class="subtitle">For Pacific Express Installations</div>
+    <div id="backendStatusBar" style="display:flex;justify-content:center;align-items:center;margin-top:2em;">
+      <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
+      <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
+        Checking backend status . . .
+      </span>
+    </div>
+    <div id="authSection" class="auth-section" style="display:none;">
+      <h2 id="authTitle">Login</h2>
+      <input type="text" id="authUsername" placeholder="Username" autocomplete="username">
+      <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
+      <button class="button" id="loginBtn">Login</button>
+      <button class="button secondary" id="switchToSignupBtn">Create Account</button>
+      <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="authError"></div>
+    </div>
+    <div id="signupSection" class="auth-section" style="display:none;">
+      <h2>Create Account</h2>
+      <input type="text" id="signupUsername" placeholder="Username" autocomplete="username">
+      <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password">
+      <button class="button" id="signupBtn">Sign Up</button>
+      <button class="button secondary" id="switchToLoginBtn">Back to Login</button>
+      <div style="margin-top:0.8em;color:#e03f3f;font-weight:600;" id="signupError"></div>
+    </div>
+    <main id="mainApp" style="display:none;">
+      <form id="job-form" autocomplete="off">
+        <div class="form-group">
+          <label for="customerName">Customer Name</label>
+          <input type="text" id="customerName" required autocomplete="off" placeholder="Enter customer name...">
         </div>
+        <div class="form-group">
+          <label for="jobDescription">Job Description</label>
+          <input type="text" id="jobDescription" required autocomplete="off" placeholder="E.g. Install Dishwasher">
+        </div>
+        <div class="form-group">
+          <label for="jobLocation">Job Location</label>
+          <input type="text" id="jobLocation" autocomplete="off" placeholder="Enter job address or site...">
+        </div>
+        <div class="form-group">
+          <label for="deliveryDate">Delivery Date (optional)</label>
+          <input type="date" id="deliveryDate">
+        </div>
+        <div class="form-group">
+          <label for="proposedScheduledDate">Proposed Scheduled Date (optional)</label>
+          <input type="date" id="proposedScheduledDate">
+        </div>
+        <div class="form-group">
+          <label for="scheduledDate">Scheduled Date (optional)</label>
+          <input type="date" id="scheduledDate">
+        </div>
+        <div class="form-actions">
+          <button type="submit">Add Job</button>
+          <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
+        </div>
+      </form>
+      <div class="export-import-bar">
+        <button class="button" id="exportBtn">Export Jobs</button>
+        <label>
+          <input type="file" id="importFile" accept=".json">
+          <span class="button secondary" tabindex="0">Import Jobs</span>
+        </label>
       </div>
-      <div class="form-actions">
-        <button type="submit">Add Job</button>
-        <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
+      <h2>Job List</h2>
+      <div class="table-wrapper">
+        <table id="jobTable">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Job Description</th>
+              <th>Location</th>
+              <th>Delivery Date</th>
+              <th>Proposed Scheduled Date</th>
+              <th>Scheduled Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
       </div>
-    </form>
-    <div class="export-import-bar">
-      <button class="button" id="exportBtn">Export Jobs</button>
-      <label>
-        <input type="file" id="importFile" accept=".json">
-        <span class="button secondary" tabindex="0">Import Jobs</span>
-      </label>
-    </div>
-    <h2>Job List</h2>
-    <div class="table-wrapper">
-      <table id="jobTable">
-        <thead>
-          <tr>
-            <th>Customer Name</th>
-            <th>Job Description</th>
-            <th>Location</th>
-            <th>Delivery Date</th>
-            <th>Proposed Scheduled Date</th>
-            <th>Scheduled Date</th>
-            <th>Requirements</th>
-            <th>Haul Away</th>
-            <th>Valve</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-    </div>
-  </main>
-<script>
-  const API_URL = 'https://pfback-dcuc.onrender.com';
+    </main>
+  </div>
+  <script>
+    const API_URL = 'https://pfback-dcuc.onrender.com';
 
-  let auth = { token: null, username: null };
-  let jobs = [];
-  const $authSection    = document.getElementById('authSection');
-  const $signupSection  = document.getElementById('signupSection');
-  const $mainApp        = document.getElementById('mainApp');
-  const $authStatusBar  = document.getElementById('authStatusBar');
-  const $authWelcome    = document.getElementById('authWelcome');
-  const $logoutBtn      = document.getElementById('logoutBtn');
+    let auth = { token: null, username: null };
+    let jobs = [];
+    const $authSection    = document.getElementById('authSection');
+    const $signupSection  = document.getElementById('signupSection');
+    const $mainApp        = document.getElementById('mainApp');
+    const $authStatusBar  = document.getElementById('authStatusBar');
+    const $authWelcome    = document.getElementById('authWelcome');
+    const $logoutBtn      = document.getElementById('logoutBtn');
 
-  function showLogin() {
-    $authSection.style.display = 'block';
-    $signupSection.style.display = 'none';
-    $mainApp.style.display = 'none';
-    $authStatusBar.style.display = 'none';
-    document.getElementById('authTitle').innerText = 'Login';
-    document.getElementById('authError').innerText = '';
-    document.getElementById('authUsername').value = '';
-    document.getElementById('authPassword').value = '';
-  }
-  function showSignup() {
-    $signupSection.style.display = 'block';
-    $authSection.style.display = 'none';
-    $mainApp.style.display = 'none';
-    $authStatusBar.style.display = 'none';
-    document.getElementById('signupError').innerText = '';
-    document.getElementById('signupUsername').value = '';
-    document.getElementById('signupPassword').value = '';
-  }
-  function showMain() {
-    $authSection.style.display = 'none';
-    $signupSection.style.display = 'none';
-    $mainApp.style.display = '';
-    $authStatusBar.style.display = 'flex';
-    $authWelcome.innerText = `Logged in as ${auth.username}`;
-  }
-  document.getElementById('loginBtn').onclick = async () => {
-    const username = document.getElementById('authUsername').value;
-    const password = document.getElementById('authPassword').value;
-    document.getElementById('authError').innerText = '';
-    try {
-      const r = await fetch(API_URL+'/api/login', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, password})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Login failed");
-      auth.token = res.token;
-      auth.username = res.username;
-      localStorage.setItem('auth', JSON.stringify(auth));
-      await loadJobs();
-      showMain();
-    } catch(e) {
-      document.getElementById('authError').innerText = e.message;
-    }
-  };
-  document.getElementById('switchToSignupBtn').onclick = showSignup;
-  document.getElementById('switchToLoginBtn').onclick = showLogin;
-  document.getElementById('signupBtn').onclick = async () => {
-    const username = document.getElementById('signupUsername').value;
-    const password = document.getElementById('signupPassword').value;
-    document.getElementById('signupError').innerText = '';
-    try {
-      const r = await fetch(API_URL+'/api/signup', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, password})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Signup failed");
-      showLogin();
-      document.getElementById('authUsername').value = username;
+    function showLogin() {
+      $authSection.style.display = 'block';
+      $signupSection.style.display = 'none';
+      $mainApp.style.display = 'none';
+      $authStatusBar.style.display = 'none';
+      document.getElementById('authTitle').innerText = 'Login';
+      document.getElementById('authError').innerText = '';
+      document.getElementById('authUsername').value = '';
       document.getElementById('authPassword').value = '';
-    } catch(e) {
-      document.getElementById('signupError').innerText = e.message;
     }
-  };
-  $logoutBtn.onclick = () => {
-    localStorage.removeItem('auth');
-    auth = {token:null, username:null};
-    showLogin();
-  };
-  async function loadJobs() {
-    if (!auth.token) return;
-    const r = await fetch(API_URL+'/api/jobs', {
-      method:'GET',
-      headers: {'Authorization': auth.token}
-    });
-    const res = await r.json();
-    jobs = res.jobs || [];
-    renderJobs();
-  }
-  async function addJob(job) {
-    if (!auth.token) return;
-    const res = await fetch(API_URL+'/api/jobs', {
-      method:'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': auth.token},
-      body: JSON.stringify(job)
-    });
-    const data = await res.json();
-    if (data.ok) {
-      await loadJobs();
-    } else {
-      alert(data.error || "Failed to add job.");
+    function showSignup() {
+      $signupSection.style.display = 'block';
+      $authSection.style.display = 'none';
+      $mainApp.style.display = 'none';
+      $authStatusBar.style.display = 'none';
+      document.getElementById('signupError').innerText = '';
+      document.getElementById('signupUsername').value = '';
+      document.getElementById('signupPassword').value = '';
     }
-  }
-  async function deleteJob(idx) {
-    const job = jobs[idx];
-    if (!job || !job.id) return alert("Job not found.");
-    if (!confirm('Delete this job?')) return;
-    const res = await fetch(API_URL + '/api/jobs/' + job.id, {
-      method: 'DELETE',
-      headers: {'Authorization': auth.token}
-    });
-    const data = await res.json();
-    if (data.ok) {
-      await loadJobs();
-    } else {
-      alert(data.error || "Failed to delete job.");
+    function showMain() {
+      $authSection.style.display = 'none';
+      $signupSection.style.display = 'none';
+      $mainApp.style.display = '';
+      $authStatusBar.style.display = 'flex';
+      $authWelcome.innerText = `Logged in as ${auth.username}`;
     }
-  }
-  function getFormData() {
-    function isChecked(id) { return document.getElementById(id) ? document.getElementById(id).checked : false; }
-    return {
-      customerName: document.getElementById('customerName').value.trim(),
-      jobDescription: document.getElementById('jobDescription').value.trim(),
-      jobLocation: document.getElementById('jobLocation').value.trim(),
-      deliveryDate: document.getElementById('deliveryDate').value,
-      proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
-      scheduledDate: document.getElementById('scheduledDate').value,
-      electrical: isChecked('electrical'),
-      plumbing: isChecked('plumbing'),
-      cabinetry: isChecked('cabinetry'),
-      countertops: isChecked('countertops'),
-      haulAway: isChecked('haulAway'),
-      valve: isChecked('valve'),
-      status: 'scheduled',
-      amount: 0
-    };
-  }
-  function clearForm() {
-    document.getElementById('job-form').reset();
-  }
-  function formatDateToMMDDYYYY(dateStr) {
-    if (!dateStr || dateStr.length !== 10) return "";
-    const [year, month, day] = dateStr.split('-');
-    return `${month}-${day}-${year}`;
-  }
-  function renderJobs() {
-    const tbody = document.getElementById('jobTable').querySelector('tbody');
-    tbody.innerHTML = '';
-    if (jobs.length === 0) {
-      const tr = document.createElement('tr');
-      tr.className = 'empty-row';
-      const td = document.createElement('td');
-      td.colSpan = 9;
-      td.textContent = "No jobs yet. Please add a job above.";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-      return;
-    }
-    jobs.forEach((job, idx) => {
-      const tr = document.createElement('tr');
-      let servicesHTML = "";
-      servicesHTML += job.electrical
-        ? `<span class="chip">Electrical</span>`
-        : `<span class="chip chip-red">No Electrical</span>`;
-      servicesHTML += job.plumbing
-        ? `<span class="chip">Plumbing</span>`
-        : `<span class="chip chip-red">No Plumbing</span>`;
-      servicesHTML += job.cabinetry
-        ? `<span class="chip">Cabinetry</span>`
-        : `<span class="chip chip-red">No Cabinetry</span>`;
-      servicesHTML += job.countertops
-        ? `<span class="chip">Countertops</span>`
-        : `<span class="chip chip-red">No Countertops</span>`;
-      tr.innerHTML = `
-        <td>${escapeHTML(job.customerName)}</td>
-        <td>${escapeHTML(job.jobDescription)}</td>
-        <td>${escapeHTML(job.jobLocation)}</td>
-        <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
-        <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
-        <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
-        <td>${servicesHTML}</td>
-        <td>${job.haulAway ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
-        <td>${job.valve ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
-        <td>
-          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-    Array.from(tbody.children).forEach((row, i) => {
-      row.style.opacity = 0;
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
-        row.style.opacity = 1;
-      }, 80 * i);
-    });
-  }
-  function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, function (m) {
-      return ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[m];
-    });
-  }
-  document.getElementById('job-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const job = getFormData();
-    if (!job.customerName || !job.jobDescription || !job.jobLocation ||
-        !job.deliveryDate || !job.proposedScheduledDate || !job.scheduledDate) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-    await addJob(job);
-    clearForm();
-    let main = document.getElementById('mainApp');
-    main.classList.remove('form-added');
-    setTimeout(() => main.classList.add('form-added'), 10);
-    setTimeout(() => main.classList.remove('form-added'), 900);
-  });
-  document.getElementById('clearBtn').addEventListener('click', function() {
-    clearForm();
-  });
-  document.getElementById('exportBtn').addEventListener('click', function() {
-    if(!jobs.length) {
-      alert("No jobs to export.");
-      return;
-    }
-    const data = JSON.stringify(jobs, null, 2);
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'jobs-export.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-  document.getElementById('importFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
+    document.getElementById('loginBtn').onclick = async () => {
+      const username = document.getElementById('authUsername').value;
+      const password = document.getElementById('authPassword').value;
+      document.getElementById('authError').innerText = '';
       try {
-        const imported = JSON.parse(ev.target.result);
-        if (!Array.isArray(imported)) throw new Error("Invalid file");
-        if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
-        for (const job of imported) {
-          await addJob(job);
-        }
+        const r = await fetch(API_URL+'/api/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Login failed");
+        auth.token = res.token;
+        auth.username = res.username;
+        localStorage.setItem('auth', JSON.stringify(auth));
         await loadJobs();
-        alert('Jobs imported!');
-      } catch (err) {
-        alert('Failed to import: ' + err.message);
+        showMain();
+      } catch(e) {
+        document.getElementById('authError').innerText = e.message;
       }
     };
-    reader.readAsText(file);
-    e.target.value = "";
-  });
-  const backendStatusBar = document.getElementById('backendStatusBar');
-  const backendStatusMsg = document.getElementById('backendStatusMsg');
-  const backendStatusIcon = document.getElementById('backendStatusIcon');
-  let backendReady = false;
-  let backendAttempts = 0;
-  function checkBackend() {
-    backendAttempts++;
-    backendStatusMsg.innerText = backendAttempts === 1
-      ? "Checking backend status..."
-      : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
-    backendStatusIcon.innerText = "🔄";
-    fetch(API_URL + "/", { method: "GET", cache: "no-store" })
-      .then(async r => {
-        if (r.ok) {
-          backendReady = true;
-          if (!sessionStorage.getItem('backendJustReloaded')) {
-            sessionStorage.setItem('backendJustReloaded', '1');
-            backendStatusMsg.innerText = "Backend is ready! Reloading...";
-            backendStatusIcon.innerText = "✅";
-            setTimeout(() => {
-              location.reload();
-            }, 900);
-          } else {
-            sessionStorage.removeItem('backendJustReloaded');
-            backendStatusIcon.innerText = "✅";
-            backendStatusMsg.innerText = "Backend is ready!";
-            setTimeout(() => {
-              backendStatusBar.style.display = "none";
-              startApp();
-            }, 700);
-          }
-        } else throw new Error();
-      })
-      .catch(err => {
-        backendReady = false;
-        backendStatusIcon.innerText = "💤";
-        backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
-        setTimeout(() => checkBackend(), 4000);
-      });
-  }
-  function startApp() {
-    const saved = localStorage.getItem('auth');
-    if (saved) {
-      auth = JSON.parse(saved);
-      showMain();
-      loadJobs();
-    } else {
+    document.getElementById('switchToSignupBtn').onclick = showSignup;
+    document.getElementById('switchToLoginBtn').onclick = showLogin;
+    document.getElementById('signupBtn').onclick = async () => {
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+      document.getElementById('signupError').innerText = '';
+      try {
+        const r = await fetch(API_URL+'/api/signup', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Signup failed");
+        showLogin();
+        document.getElementById('authUsername').value = username;
+        document.getElementById('authPassword').value = '';
+      } catch(e) {
+        document.getElementById('signupError').innerText = e.message;
+      }
+    };
+    $logoutBtn.onclick = () => {
+      localStorage.removeItem('auth');
+      auth = {token:null, username:null};
       showLogin();
+    };
+    async function loadJobs() {
+      if (!auth.token) return;
+      const r = await fetch(API_URL+'/api/jobs', {
+        method:'GET',
+        headers: {'Authorization': auth.token}
+      });
+      const res = await r.json();
+      jobs = res.jobs || [];
+      renderJobs();
     }
-  }
-  const darkToggle = document.getElementById('darkToggle');
-  const sunIcon = document.getElementById('sunIcon');
-  const moonIcon = document.getElementById('moonIcon');
-  const darkToggleText = document.getElementById('darkToggleText');
-  function setDarkMode(enabled) {
-    if (enabled) {
-      document.body.classList.add('dark');
-      darkToggle.classList.add('active');
-      sunIcon.style.display = 'none';
-      moonIcon.style.display = 'inline';
-      darkToggleText.innerText = "Light Mode";
-      localStorage.setItem('darkMode', '1');
-    } else {
-      document.body.classList.remove('dark');
-      darkToggle.classList.remove('active');
-      sunIcon.style.display = 'inline';
-      moonIcon.style.display = 'none';
-      darkToggleText.innerText = "Dark Mode";
-      localStorage.removeItem('darkMode');
+    async function addJob(job) {
+      if (!auth.token) return;
+      const res = await fetch(API_URL+'/api/jobs', {
+        method:'POST',
+        headers: {'Content-Type':'application/json', 'Authorization': auth.token},
+        body: JSON.stringify(job)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await loadJobs();
+      } else {
+        alert(data.error || "Failed to add job.");
+      }
     }
-  }
-  darkToggle.onclick = function() {
-    setDarkMode(!document.body.classList.contains('dark'));
-  };
-  if (localStorage.getItem('darkMode')) setDarkMode(true);
+    async function deleteJob(idx) {
+      const job = jobs[idx];
+      if (!job || !job.id) return alert("Job not found.");
+      if (!confirm('Delete this job?')) return;
+      const res = await fetch(API_URL + '/api/jobs/' + job.id, {
+        method: 'DELETE',
+        headers: {'Authorization': auth.token}
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await loadJobs();
+      } else {
+        alert(data.error || "Failed to delete job.");
+      }
+    }
+    function getFormData() {
+      return {
+        customerName: document.getElementById('customerName').value.trim(),
+        jobDescription: document.getElementById('jobDescription').value.trim(),
+        jobLocation: document.getElementById('jobLocation').value.trim(),
+        deliveryDate: document.getElementById('deliveryDate').value,
+        proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
+        scheduledDate: document.getElementById('scheduledDate').value,
+        status: 'scheduled',
+        amount: 0
+      };
+    }
+    function clearForm() {
+      document.getElementById('job-form').reset();
+    }
+    function formatDateToMMDDYYYY(dateStr) {
+      if (!dateStr || dateStr.length !== 10) return "";
+      const [year, month, day] = dateStr.split('-');
+      return `${month}-${day}-${year}`;
+    }
+    function renderJobs() {
+      const tbody = document.getElementById('jobTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      if (jobs.length === 0) {
+        const tr = document.createElement('tr');
+        tr.className = 'empty-row';
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.textContent = "No jobs yet. Please add a job above.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      jobs.forEach((job, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHTML(job.customerName)}</td>
+          <td>${escapeHTML(job.jobDescription)}</td>
+          <td>${escapeHTML(job.jobLocation || "")}</td>
+          <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
+          <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
+          <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
+          <td>
+            <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      Array.from(tbody.children).forEach((row, i) => {
+        row.style.opacity = 0;
+        setTimeout(() => {
+          row.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
+          row.style.opacity = 1;
+        }, 80 * i);
+      });
+    }
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>"']/g, function (m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
+    }
+    document.getElementById('job-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const job = getFormData();
+      if (!job.customerName || !job.jobDescription) {
+        alert('Please fill in all required fields: customer name and job description.');
+        return;
+      }
+      await addJob(job);
+      clearForm();
+      let main = document.getElementById('mainApp');
+      main.classList.remove('form-added');
+      setTimeout(() => main.classList.add('form-added'), 10);
+      setTimeout(() => main.classList.remove('form-added'), 900);
+    });
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      clearForm();
+    });
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      if(!jobs.length) {
+        alert("No jobs to export.");
+        return;
+      }
+      const data = JSON.stringify(jobs, null, 2);
+      const blob = new Blob([data], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jobs-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById('importFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(ev) {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (!Array.isArray(imported)) throw new Error("Invalid file");
+          if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
+          for (const job of imported) {
+            await addJob(job);
+          }
+          await loadJobs();
+          alert('Jobs imported!');
+        } catch (err) {
+          alert('Failed to import: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+    const backendStatusBar = document.getElementById('backendStatusBar');
+    const backendStatusMsg = document.getElementById('backendStatusMsg');
+    const backendStatusIcon = document.getElementById('backendStatusIcon');
+    let backendReady = false;
+    let backendAttempts = 0;
+    function checkBackend() {
+      backendAttempts++;
+      backendStatusMsg.innerText = backendAttempts === 1
+        ? "Checking backend status..."
+        : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
+      backendStatusIcon.innerText = "🔄";
+      fetch(API_URL + "/", { method: "GET", cache: "no-store" })
+        .then(async r => {
+          if (r.ok) {
+            backendReady = true;
+            backendStatusBar.style.display = "none";
+            $authSection.style.display = "";
+            window.localStorage.getItem('auth')
+              ? tryAutoLogin()
+              : showLogin();
+          } else throw new Error();
+        })
+        .catch(() => {
+          backendStatusIcon.innerText = "⚠️";
+          backendStatusMsg.innerText = "Backend is sleeping, retrying...";
+          setTimeout(checkBackend, 2100);
+        });
+    }
+    function tryAutoLogin() {
+      try {
+        const authStr = window.localStorage.getItem('auth');
+        if (!authStr) return showLogin();
+        auth = JSON.parse(authStr);
+        if (!auth || !auth.token) return showLogin();
+        loadJobs();
+        showMain();
+      } catch {
+        showLogin();
+      }
+    }
+    const darkToggle = document.getElementById('darkToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    const darkToggleText = document.getElementById('darkToggleText');
+    function setDarkMode(enabled) {
+      if (enabled) {
+        document.body.classList.add('dark');
+        darkToggle.classList.add('active');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'inline';
+        darkToggleText.innerText = "Light Mode";
+        localStorage.setItem('darkMode', '1');
+      } else {
+        document.body.classList.remove('dark');
+        darkToggle.classList.remove('active');
+        sunIcon.style.display = 'inline';
+        moonIcon.style.display = 'none';
+        darkToggleText.innerText = "Dark Mode";
+        localStorage.removeItem('darkMode');
+      }
+    }
+    darkToggle.onclick = function() {
+      setDarkMode(!document.body.classList.contains('dark'));
+    };
+    if (localStorage.getItem('darkMode')) setDarkMode(true);
 
-  window.onload = () => {
-    backendStatusBar.style.display = "flex";
-    $authSection.style.display = "none";
-    $signupSection.style.display = "none";
-    $mainApp.style.display = "none";
-    $authStatusBar.style.display = "none";
-    checkBackend();
-  };
-  window.deleteJob = deleteJob;
-</script>
+    window.onload = () => {
+      if (!backendReady) {
+        backendStatusBar.style.display = "flex";
+        $authSection.style.display = "none";
+        $signupSection.style.display = "none";
+        $mainApp.style.display = "none";
+        $authStatusBar.style.display = "none";
+        checkBackend();
+      }
+    };
+    window.deleteJob = deleteJob;
+  </script>
 </body>
 </html>
