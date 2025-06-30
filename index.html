@@ -408,7 +408,8 @@
     .loader, .backend-loader {
       height: 20px;
       aspect-ratio: 4;
-      --_g: no-repeat radial-gradient(farthest-side,#000 90%,#0000);
+      --loader-dot-color: #000;
+      --_g: no-repeat radial-gradient(farthest-side,var(--loader-dot-color) 90%,#0000);
       background: 
         var(--_g) left, 
         var(--_g) right;
@@ -427,7 +428,7 @@
       margin: auto;
       border-radius: 50%;
       transform-origin: -100% 50%;
-      background: #000;
+      background: var(--loader-dot-color, #000);
       animation: l49 1s infinite linear;
     }
     .loader:after,
@@ -436,7 +437,16 @@
       --s:-1;
       animation-delay: -.5s;
     }
-
+    body.dark .loader,
+    body.dark .backend-loader {
+      --loader-dot-color: #fff;
+    }
+    body.dark .loader:before,
+    body.dark .loader:after,
+    body.dark .backend-loader:before,
+    body.dark .backend-loader:after {
+      background: #fff;
+    }
     @keyframes l49 {
       58%,
       100% {transform: rotate(calc(var(--s,1)*1turn))}
