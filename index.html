@@ -383,6 +383,7 @@
       display: flex;
       align-items: center;
       gap: 1.2em;
+      flex-direction: column;
     }
     .backend-loader {
       margin-left: 1em;
@@ -405,7 +406,7 @@
       .form-actions { flex-direction: column; gap: 0.6em; }
     }
     .loader, .backend-loader {
-      height: 15px;
+      height: 20px;
       aspect-ratio: 4;
       --_g: no-repeat radial-gradient(farthest-side,#000 90%,#0000);
       background: 
@@ -413,6 +414,7 @@
         var(--_g) right;
       background-size: 25% 100%;
       display: grid;
+      margin-top: 25px;
     }
     .loader:before,
     .loader:after,
