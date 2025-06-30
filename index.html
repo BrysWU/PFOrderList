@@ -140,7 +140,7 @@
       transition: color var(--transition);
     }
     body.dark .form-group label { color: #bcbcf7; }
-    input[type="text"], input[type="date"] {
+    input[type="text"], input[type="date"], textarea {
       padding: 0.7em 1em;
       border: 1.5px solid var(--border);
       border-radius: 7px;
@@ -148,13 +148,20 @@
       background: #fff;
       transition: border var(--transition), background var(--transition), color var(--transition);
     }
+    textarea {
+      min-height: 38px;
+      max-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
     body.dark input[type="text"],
-    body.dark input[type="date"] {
+    body.dark input[type="date"],
+    body.dark textarea {
       background: var(--dark-secondary);
       border: 1.5px solid var(--dark-border);
       color: var(--dark-text);
     }
-    input[type="text"]:focus, input[type="date"]:focus {
+    input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
       border: 1.5px solid var(--primary);
       outline: none;
     }
@@ -226,7 +233,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 950px;
+      min-width: 1100px;
       font-size: 1rem;
       background: #fff;
       border-radius: var(--radius);
@@ -264,6 +271,7 @@
       font-size: 0.99rem;
       vertical-align: middle;
       transition: color var(--transition);
+      word-break: break-word;
     }
     body.dark td {
       color: #d5e4ff;
@@ -494,6 +502,10 @@
         <label for="scheduledDate">Scheduled Date (optional)</label>
         <input type="date" id="scheduledDate">
       </div>
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" rows="2" placeholder="Add any notes about this job (optional)"></textarea>
+      </div>
       <div class="form-actions">
         <button type="submit" id="submitBtn">Add Job</button>
         <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
@@ -518,6 +530,7 @@
             <th>Delivery Date</th>
             <th>Proposed Scheduled Date</th>
             <th>Scheduled Date</th>
+            <th>Notes</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -547,7 +560,6 @@
   const $backendStatusIcon = document.getElementById('backendStatusIcon');
   const $backendLoader = document.getElementById('backendLoader');
 
-  // Helper function to show/hide backend loader
   function showBackendLoader(show) {
     if (show) {
       $backendLoader.style.display = "inline-grid";
@@ -640,10 +652,9 @@
   };
   $logoutBtn.onclick = doLogout;
 
-  // Calculate a simple hash of jobs array for change detection
   function getJobsHash(jobsArr) {
     return JSON.stringify(jobsArr.map(j => [
-      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.status, j.amount
+      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.notes, j.status, j.amount
     ]));
   }
 
@@ -672,10 +683,8 @@
     showBackendLoader(false);
   }
 
-  // Live update system (polling)
   function startLiveUpdates() {
     stopLiveUpdates();
-    // Poll every 5 seconds
     liveUpdateTimer = setInterval(async () => {
       if (!auth.token) {
         stopLiveUpdates();
@@ -701,9 +710,7 @@
             renderJobs();
           }
         }
-      } catch (e) {
-        // ignore network errors during polling
-      }
+      } catch (e) {}
     }, 5000);
   }
   function stopLiveUpdates() {
@@ -768,6 +775,7 @@
       deliveryDate: document.getElementById('deliveryDate').value,
       proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
       scheduledDate: document.getElementById('scheduledDate').value,
+      notes: document.getElementById('notes').value.trim(),
       status: 'scheduled',
       amount: 0
     };
@@ -779,6 +787,7 @@
     document.getElementById('deliveryDate').value = job.deliveryDate || "";
     document.getElementById('proposedScheduledDate').value = job.proposedScheduledDate || "";
     document.getElementById('scheduledDate').value = job.scheduledDate || "";
+    document.getElementById('notes').value = job.notes || "";
   }
   function clearForm() {
     document.getElementById('job-form').reset();
@@ -798,7 +807,7 @@
       const tr = document.createElement('tr');
       tr.className = 'empty-row';
       const td = document.createElement('td');
-      td.colSpan = 7;
+      td.colSpan = 8;
       td.textContent = "No jobs yet. Please add a job above.";
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -813,6 +822,7 @@
         <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
         <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
         <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
+        <td>${escapeHTML(job.notes || "")}</td>
         <td>
           <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
           <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
