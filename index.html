@@ -381,8 +381,8 @@
       .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
       .form-actions { flex-direction: column; gap: 0.6em; }
     }
-    /* HTML: <div class="backendloader"></div> */
-.backendloader {
+    /* HTML: <div class="loader"></div> */
+.loader {
   height: 15px;
   aspect-ratio: 4;
   --_g: no-repeat radial-gradient(farthest-side,#000 90%,#0000);
@@ -392,8 +392,8 @@
   background-size: 25% 100%;
   display: grid;
 }
-.backendloader:before,
-.backendloader:after {
+.loader:before,
+.loader:after {
   content: "";
   height: inherit;
   aspect-ratio: 1;
@@ -404,7 +404,7 @@
   background: #000;
   animation: l49 1s infinite linear;
 }
-.backendloader:after {
+.loader:after {
   transform-origin: 200% 50%;
   --s:-1;
   animation-delay: -.5s;
@@ -432,7 +432,7 @@
     <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
       Checking backend status
-      <div class="backendloader"></div>
+      <div class="loader"></div>
     </span>
   </div>
   <div id="authSection" class="auth-section" style="display:none;">
@@ -550,6 +550,14 @@
     $authStatusBar.style.display = 'flex';
     $authWelcome.innerText = `Logged in as ${auth.username}`;
   }
+  function doLogout() {
+    localStorage.removeItem('auth');
+    auth = {token:null, username:null};
+    showLogin();
+    clearForm();
+    jobs = [];
+    renderJobs();
+  }
   document.getElementById('loginBtn').onclick = async () => {
     const username = document.getElementById('authUsername').value;
     const password = document.getElementById('authPassword').value;
@@ -590,20 +598,27 @@
       document.getElementById('signupError').innerText = e.message;
     }
   };
-  $logoutBtn.onclick = () => {
-    localStorage.removeItem('auth');
-    auth = {token:null, username:null};
-    showLogin();
-  };
+  $logoutBtn.onclick = doLogout;
+
   async function loadJobs() {
     if (!auth.token) return;
-    const r = await fetch(API_URL+'/api/jobs', {
-      method:'GET',
-      headers: {'Authorization': auth.token}
-    });
-    const res = await r.json();
-    jobs = res.jobs || [];
-    renderJobs();
+    try {
+      const r = await fetch(API_URL+'/api/jobs', {
+        method:'GET',
+        headers: {'Authorization': auth.token}
+      });
+      if (r.status === 401) {
+        doLogout();
+        alert("Session expired or logged out. Please log in again.");
+        return;
+      }
+      const res = await r.json();
+      jobs = res.jobs || [];
+      renderJobs();
+    } catch (e) {
+      jobs = [];
+      renderJobs();
+    }
   }
   async function addJob(job) {
     if (!auth.token) return;
@@ -800,8 +815,6 @@
   const backendStatusBar = document.getElementById('backendStatusBar');
   const backendStatusMsg = document.getElementById('backendStatusMsg');
   const backendStatusIcon = document.getElementById('backendStatusIcon');
-  const backendloader = document.getElementById('backendloader');
-  
   let backendReady = false;
   let backendAttempts = 0;
   function checkBackend() {
@@ -810,8 +823,6 @@
       ? "Checking backend status..."
       : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
     backendStatusIcon.innerText = "🔄";
-    backendloader.style.display = "grid";
-    
     fetch(API_URL + "/", { method: "GET", cache: "no-store" })
       .then(async r => {
         if (r.ok) {
@@ -819,7 +830,6 @@
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
             backendStatusMsg.innerText = "Backend is ready! Reloading...";
-            backendloader.style.display = "grid";
             backendStatusIcon.innerText = "✅";
             setTimeout(() => {
               location.reload();
@@ -828,7 +838,6 @@
             sessionStorage.removeItem('backendJustReloaded');
             backendStatusIcon.innerText = "✅";
             backendStatusMsg.innerText = "Backend is ready!";
-            backendloader.style.display = "grid";
             setTimeout(() => {
               backendStatusBar.style.display = "none";
               startApp();
@@ -840,7 +849,6 @@
         backendReady = false;
         backendStatusIcon.innerText = "💤";
         backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
-        backendloader.style.display = "grid";
         setTimeout(() => checkBackend(), 4000);
       });
   }
