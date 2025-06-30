@@ -956,7 +956,7 @@
         $backendStatusIcon.innerText = "💤";
         $backendStatusMsg.innerHTML = `Backend is asleep or offline. Retrying in 100s... <span class="backend-loader" id="backendLoader"></span>`;
         showBackendLoader(true);
-        setTimeout(() => checkBackend(), 10000);
+        setTimeout(() => checkBackend(), 1000000);
       });
   }
   function startApp() {
