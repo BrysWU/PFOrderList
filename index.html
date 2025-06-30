@@ -936,8 +936,7 @@
   let backendAttempts = 0;
   function checkBackend() {
     backendAttempts++;
-    $backendStatusMsg.innerHTML = `Checking backend status <span class="backend-loader" id="backendLoader"></span>`;
-    $backendStatusIcon.innerText = "🔄";
+    $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking backend status`;
     showBackendLoader(true);
     fetch(API_URL + "/", { method: "GET", cache: "no-store" })
       .then(async r => {
@@ -945,16 +944,14 @@
           backendReady = true;
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
-            $backendStatusMsg.innerHTML = `Backend is ready! Reloading page . . . <span class="backend-loader" id="backendLoader"></span>`;
-            $backendStatusIcon.innerText = "✅";
+            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is ready! Reloading page . . .`;
             showBackendLoader(true);
             setTimeout(() => {
               location.reload();
             }, 900);
           } else {
             sessionStorage.removeItem('backendJustReloaded');
-            $backendStatusIcon.innerText = "✅";
-            $backendStatusMsg.innerHTML = "Backend is ready!";
+            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is ready!`;
             showBackendLoader(false);
             setTimeout(() => {
               $backendStatusBar.style.display = "none";
@@ -965,8 +962,7 @@
       })
       .catch(err => {
         backendReady = false;
-        $backendStatusIcon.innerText = "💤";
-        $backendStatusMsg.innerHTML = `Backend is asleep or offline. Retrying in a few seconds . . . <span class="backend-loader" id="backendLoader"></span>`;
+        $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is asleep or offline. Retrying in a few seconds . . .`;
         showBackendLoader(true);
         setTimeout(() => checkBackend(), 5000);
       });
