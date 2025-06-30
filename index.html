@@ -366,6 +366,21 @@
     body.dark .auth-status-bar span { color: #99b7ff; }
     #backendStatusBar {
       animation: fade-in 1.3s;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #backendStatusMsg {
+      margin-top: 0.7em;
+      display: flex;
+      align-items: center;
+      gap: 1.2em;
+    }
+    .backend-loader {
+      margin-left: 1em;
+      margin-top: 0.1em;
+      display: inline-grid;
+      vertical-align: middle;
     }
     @media (max-width: 700px) {
       main { padding: 1em 0.1em 1em 0.1em; }
@@ -381,39 +396,41 @@
       .export-import-bar { flex-direction: column; gap: 0.7em; align-items: stretch; }
       .form-actions { flex-direction: column; gap: 0.6em; }
     }
-    /* HTML: <div class="loader"></div> */
-.loader {
-  height: 15px;
-  aspect-ratio: 4;
-  --_g: no-repeat radial-gradient(farthest-side,#000 90%,#0000);
-  background: 
-    var(--_g) left, 
-    var(--_g) right;
-  background-size: 25% 100%;
-  display: grid;
-}
-.loader:before,
-.loader:after {
-  content: "";
-  height: inherit;
-  aspect-ratio: 1;
-  grid-area: 1/1;
-  margin: auto;
-  border-radius: 50%;
-  transform-origin: -100% 50%;
-  background: #000;
-  animation: l49 1s infinite linear;
-}
-.loader:after {
-  transform-origin: 200% 50%;
-  --s:-1;
-  animation-delay: -.5s;
-}
+    .loader, .backend-loader {
+      height: 15px;
+      aspect-ratio: 4;
+      --_g: no-repeat radial-gradient(farthest-side,#000 90%,#0000);
+      background: 
+        var(--_g) left, 
+        var(--_g) right;
+      background-size: 25% 100%;
+      display: grid;
+    }
+    .loader:before,
+    .loader:after,
+    .backend-loader:before,
+    .backend-loader:after {
+      content: "";
+      height: inherit;
+      aspect-ratio: 1;
+      grid-area: 1/1;
+      margin: auto;
+      border-radius: 50%;
+      transform-origin: -100% 50%;
+      background: #000;
+      animation: l49 1s infinite linear;
+    }
+    .loader:after,
+    .backend-loader:after {
+      transform-origin: 200% 50%;
+      --s:-1;
+      animation-delay: -.5s;
+    }
 
-@keyframes l49 {
-  58%,
-  100% {transform: rotate(calc(var(--s,1)*1turn))}
-}
+    @keyframes l49 {
+      58%,
+      100% {transform: rotate(calc(var(--s,1)*1turn))}
+    }
   </style>
 </head>
 <body>
@@ -432,7 +449,7 @@
     <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
       Checking backend status
-      <div class="loader"></div>
+      <span class="backend-loader" id="backendLoader"></span>
     </span>
   </div>
   <div id="authSection" class="auth-section" style="display:none;">
@@ -515,6 +532,8 @@
   let auth = { token: null, username: null };
   let jobs = [];
   let editingJobId = null;
+  let liveUpdateTimer = null;
+  let lastJobsHash = null;
   const $authSection    = document.getElementById('authSection');
   const $signupSection  = document.getElementById('signupSection');
   const $mainApp        = document.getElementById('mainApp');
@@ -523,6 +542,19 @@
   const $logoutBtn      = document.getElementById('logoutBtn');
   const $submitBtn      = document.getElementById('submitBtn');
   const $cancelEditBtn  = document.getElementById('cancelEditBtn');
+  const $backendStatusBar = document.getElementById('backendStatusBar');
+  const $backendStatusMsg = document.getElementById('backendStatusMsg');
+  const $backendStatusIcon = document.getElementById('backendStatusIcon');
+  const $backendLoader = document.getElementById('backendLoader');
+
+  // Helper function to show/hide backend loader
+  function showBackendLoader(show) {
+    if (show) {
+      $backendLoader.style.display = "inline-grid";
+    } else {
+      $backendLoader.style.display = "none";
+    }
+  }
 
   function showLogin() {
     $authSection.style.display = 'block';
@@ -533,6 +565,7 @@
     document.getElementById('authError').innerText = '';
     document.getElementById('authUsername').value = '';
     document.getElementById('authPassword').value = '';
+    stopLiveUpdates();
   }
   function showSignup() {
     $signupSection.style.display = 'block';
@@ -542,6 +575,7 @@
     document.getElementById('signupError').innerText = '';
     document.getElementById('signupUsername').value = '';
     document.getElementById('signupPassword').value = '';
+    stopLiveUpdates();
   }
   function showMain() {
     $authSection.style.display = 'none';
@@ -549,6 +583,7 @@
     $mainApp.style.display = '';
     $authStatusBar.style.display = 'flex';
     $authWelcome.innerText = `Logged in as ${auth.username}`;
+    startLiveUpdates();
   }
   function doLogout() {
     localStorage.removeItem('auth');
@@ -557,11 +592,13 @@
     clearForm();
     jobs = [];
     renderJobs();
+    stopLiveUpdates();
   }
   document.getElementById('loginBtn').onclick = async () => {
     const username = document.getElementById('authUsername').value;
     const password = document.getElementById('authPassword').value;
     document.getElementById('authError').innerText = '';
+    showBackendLoader(true);
     try {
       const r = await fetch(API_URL+'/api/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -577,6 +614,7 @@
     } catch(e) {
       document.getElementById('authError').innerText = e.message;
     }
+    showBackendLoader(false);
   };
   document.getElementById('switchToSignupBtn').onclick = showSignup;
   document.getElementById('switchToLoginBtn').onclick = showLogin;
@@ -584,6 +622,7 @@
     const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
     document.getElementById('signupError').innerText = '';
+    showBackendLoader(true);
     try {
       const r = await fetch(API_URL+'/api/signup', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -597,11 +636,20 @@
     } catch(e) {
       document.getElementById('signupError').innerText = e.message;
     }
+    showBackendLoader(false);
   };
   $logoutBtn.onclick = doLogout;
 
-  async function loadJobs() {
+  // Calculate a simple hash of jobs array for change detection
+  function getJobsHash(jobsArr) {
+    return JSON.stringify(jobsArr.map(j => [
+      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.status, j.amount
+    ]));
+  }
+
+  async function loadJobs({ silent = false } = {}) {
     if (!auth.token) return;
+    if (!silent) showBackendLoader(true);
     try {
       const r = await fetch(API_URL+'/api/jobs', {
         method:'GET',
@@ -610,40 +658,87 @@
       if (r.status === 401) {
         doLogout();
         alert("Session expired or logged out. Please log in again.");
+        showBackendLoader(false);
         return;
       }
       const res = await r.json();
       jobs = res.jobs || [];
       renderJobs();
+      lastJobsHash = getJobsHash(jobs);
     } catch (e) {
       jobs = [];
       renderJobs();
     }
+    showBackendLoader(false);
   }
+
+  // Live update system (polling)
+  function startLiveUpdates() {
+    stopLiveUpdates();
+    // Poll every 5 seconds
+    liveUpdateTimer = setInterval(async () => {
+      if (!auth.token) {
+        stopLiveUpdates();
+        return;
+      }
+      try {
+        const r = await fetch(API_URL+'/api/jobs', {
+          method: 'GET',
+          headers: {'Authorization': auth.token}
+        });
+        if (r.status === 401) {
+          doLogout();
+          alert("Session expired or logged out. Please log in again.");
+          stopLiveUpdates();
+          return;
+        }
+        const res = await r.json();
+        if (Array.isArray(res.jobs)) {
+          const newHash = getJobsHash(res.jobs);
+          if (newHash !== lastJobsHash) {
+            jobs = res.jobs;
+            lastJobsHash = newHash;
+            renderJobs();
+          }
+        }
+      } catch (e) {
+        // ignore network errors during polling
+      }
+    }, 5000);
+  }
+  function stopLiveUpdates() {
+    if (liveUpdateTimer) clearInterval(liveUpdateTimer);
+    liveUpdateTimer = null;
+  }
+
   async function addJob(job) {
     if (!auth.token) return;
+    showBackendLoader(true);
     const res = await fetch(API_URL+'/api/jobs', {
       method:'POST',
       headers: {'Content-Type':'application/json', 'Authorization': auth.token},
       body: JSON.stringify(job)
     });
     const data = await res.json();
+    showBackendLoader(false);
     if (data.ok) {
-      await loadJobs();
+      await loadJobs({silent:true});
     } else {
       alert(data.error || "Failed to add job.");
     }
   }
   async function updateJob(jobId, job) {
     if (!auth.token) return;
+    showBackendLoader(true);
     const res = await fetch(API_URL+'/api/jobs/' + jobId, {
       method:'PUT',
       headers: {'Content-Type':'application/json', 'Authorization': auth.token},
       body: JSON.stringify(job)
     });
     const data = await res.json();
+    showBackendLoader(false);
     if (data.ok) {
-      await loadJobs();
+      await loadJobs({silent:true});
     } else {
       alert(data.error || "Failed to update job.");
     }
@@ -652,13 +747,15 @@
     const job = jobs[idx];
     if (!job || !job.id) return alert("Job not found.");
     if (!confirm('Delete this job?')) return;
+    showBackendLoader(true);
     const res = await fetch(API_URL + '/api/jobs/' + job.id, {
       method: 'DELETE',
       headers: {'Authorization': auth.token}
     });
     const data = await res.json();
+    showBackendLoader(false);
     if (data.ok) {
-      await loadJobs();
+      await loadJobs({silent:true});
     } else {
       alert(data.error || "Failed to delete job.");
     }
@@ -803,7 +900,7 @@
         for (const job of imported) {
           await addJob(job);
         }
-        await loadJobs();
+        await loadJobs({silent:true});
         alert('Jobs imported!');
       } catch (err) {
         alert('Failed to import: ' + err.message);
@@ -812,34 +909,33 @@
     reader.readAsText(file);
     e.target.value = "";
   });
-  const backendStatusBar = document.getElementById('backendStatusBar');
-  const backendStatusMsg = document.getElementById('backendStatusMsg');
-  const backendStatusIcon = document.getElementById('backendStatusIcon');
+
   let backendReady = false;
   let backendAttempts = 0;
   function checkBackend() {
     backendAttempts++;
-    backendStatusMsg.innerText = backendAttempts === 1
-      ? "Checking backend status..."
-      : `Backend sleeping, trying to wake up (attempt ${backendAttempts})...`;
-    backendStatusIcon.innerText = "🔄";
+    $backendStatusMsg.innerHTML = `Checking backend status <span class="backend-loader" id="backendLoader"></span>`;
+    $backendStatusIcon.innerText = "🔄";
+    showBackendLoader(true);
     fetch(API_URL + "/", { method: "GET", cache: "no-store" })
       .then(async r => {
         if (r.ok) {
           backendReady = true;
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
-            backendStatusMsg.innerText = "Backend is ready! Reloading...";
-            backendStatusIcon.innerText = "✅";
+            $backendStatusMsg.innerHTML = `Backend is ready! Reloading... <span class="backend-loader" id="backendLoader"></span>`;
+            $backendStatusIcon.innerText = "✅";
+            showBackendLoader(true);
             setTimeout(() => {
               location.reload();
             }, 900);
           } else {
             sessionStorage.removeItem('backendJustReloaded');
-            backendStatusIcon.innerText = "✅";
-            backendStatusMsg.innerText = "Backend is ready!";
+            $backendStatusIcon.innerText = "✅";
+            $backendStatusMsg.innerHTML = "Backend is ready!";
+            showBackendLoader(false);
             setTimeout(() => {
-              backendStatusBar.style.display = "none";
+              $backendStatusBar.style.display = "none";
               startApp();
             }, 700);
           }
@@ -847,8 +943,9 @@
       })
       .catch(err => {
         backendReady = false;
-        backendStatusIcon.innerText = "💤";
-        backendStatusMsg.innerText = "Backend is asleep or offline. Retrying in 4s...";
+        $backendStatusIcon.innerText = "💤";
+        $backendStatusMsg.innerHTML = `Backend is asleep or offline. Retrying in 4s... <span class="backend-loader" id="backendLoader"></span>`;
+        showBackendLoader(true);
         setTimeout(() => checkBackend(), 4000);
       });
   }
@@ -889,11 +986,12 @@
   if (localStorage.getItem('darkMode')) setDarkMode(true);
 
   window.onload = () => {
-    backendStatusBar.style.display = "flex";
+    $backendStatusBar.style.display = "flex";
     $authSection.style.display = "none";
     $signupSection.style.display = "none";
     $mainApp.style.display = "none";
     $authStatusBar.style.display = "none";
+    showBackendLoader(true);
     checkBackend();
   };
   window.deleteJob = deleteJob;
