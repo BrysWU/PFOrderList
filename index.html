@@ -443,7 +443,7 @@
   <div id="backendStatusBar" style="display:flex;justify-content:center;align-items:center;margin-top:2em;">
     <span id="backendStatusIcon" style="font-size:1.5em;vertical-align:middle;">🔄</span>
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
-      Checking backend status...
+      Checking backend status . . .
     </span>
   </div>
   <div id="authSection" class="auth-section" style="display:none;">
@@ -481,6 +481,10 @@
         <input type="date" id="deliveryDate" required>
       </div>
       <div class="form-group">
+        <label for="scheduledDate">Proposed Scheduled Date</label>
+        <input type="date" id="proposedScheduledDate" required>
+      </div>
+      <div class="form-group">
         <label for="scheduledDate">Scheduled Date</label>
         <input type="date" id="scheduledDate" required>
       </div>
@@ -516,6 +520,7 @@
             <th>Job Description</th>
             <th>Location</th>
             <th>Delivery Date</th>
+            <th>Proposed Scheduled Date</th>
             <th>Scheduled Date</th>
             <th>Requirements</th>
             <th>Haul Away</th>
@@ -657,6 +662,7 @@
       jobDescription: document.getElementById('jobDescription').value.trim(),
       jobLocation: document.getElementById('jobLocation').value.trim(),
       deliveryDate: document.getElementById('deliveryDate').value,
+      proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
       scheduledDate: document.getElementById('scheduledDate').value,
       electrical: isChecked('electrical'),
       plumbing: isChecked('plumbing'),
@@ -709,6 +715,7 @@
         <td>${escapeHTML(job.jobDescription)}</td>
         <td>${escapeHTML(job.jobLocation)}</td>
         <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
+        <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
         <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
         <td>${servicesHTML}</td>
         <td>${job.haulAway ? '<span class="chip">Yes</span>' : '<span style="color:#aaa;font-style:italic;">No</span>'}</td>
@@ -742,7 +749,7 @@
     e.preventDefault();
     const job = getFormData();
     if (!job.customerName || !job.jobDescription || !job.jobLocation ||
-        !job.deliveryDate || !job.scheduledDate) {
+        !job.deliveryDate || !job.proposedScheduledDate || !job.scheduledDate) {
       alert('Please fill in all required fields.');
       return;
     }
