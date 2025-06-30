@@ -272,6 +272,7 @@
       vertical-align: middle;
       transition: color var(--transition);
       word-break: break-word;
+      white-space: pre-line;
     }
     body.dark td {
       color: #d5e4ff;
@@ -567,7 +568,6 @@
   const $cancelEditBtn  = document.getElementById('cancelEditBtn');
   const $backendStatusBar = document.getElementById('backendStatusBar');
   const $backendStatusMsg = document.getElementById('backendStatusMsg');
-  const $backendStatusIcon = document.getElementById('backendStatusIcon');
   const $backendLoader = document.getElementById('backendLoader');
 
   function showBackendLoader(show) {
@@ -810,6 +810,7 @@
     const [year, month, day] = dateStr.split('-');
     return `${month}-${day}-${year}`;
   }
+  // Display multiline notes correctly in the table using <pre> style
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
@@ -832,7 +833,7 @@
         <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
         <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
         <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
-        <td>${escapeHTML(job.notes || "")}</td>
+        <td><span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span></td>
         <td>
           <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
           <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
