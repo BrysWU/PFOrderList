@@ -281,7 +281,17 @@
       transition: background 0.15s, transform 0.17s;
       animation: pop-btn 0.55s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .action-btn:active {
+    .edit-btn {
+      background: #fff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      margin-right: 0.5em;
+    }
+    .edit-btn:hover {
+      background: var(--primary-hover);
+      color: #fff;
+    }
+    .action-btn:active, .edit-btn:active {
       transform: scale(0.96);
     }
     @keyframes pop-btn {
@@ -434,8 +444,9 @@
         <input type="date" id="scheduledDate">
       </div>
       <div class="form-actions">
-        <button type="submit">Add Job</button>
+        <button type="submit" id="submitBtn">Add Job</button>
         <button type="button" class="button secondary" id="clearBtn">Clear Form</button>
+        <button type="button" class="button" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
       </div>
     </form>
     <div class="export-import-bar">
@@ -469,12 +480,15 @@
 
   let auth = { token: null, username: null };
   let jobs = [];
+  let editingJobId = null;
   const $authSection    = document.getElementById('authSection');
   const $signupSection  = document.getElementById('signupSection');
   const $mainApp        = document.getElementById('mainApp');
   const $authStatusBar  = document.getElementById('authStatusBar');
   const $authWelcome    = document.getElementById('authWelcome');
   const $logoutBtn      = document.getElementById('logoutBtn');
+  const $submitBtn      = document.getElementById('submitBtn');
+  const $cancelEditBtn  = document.getElementById('cancelEditBtn');
 
   function showLogin() {
     $authSection.style.display = 'block';
@@ -571,6 +585,20 @@
       alert(data.error || "Failed to add job.");
     }
   }
+  async function updateJob(jobId, job) {
+    if (!auth.token) return;
+    const res = await fetch(API_URL+'/api/jobs/' + jobId, {
+      method:'PUT',
+      headers: {'Content-Type':'application/json', 'Authorization': auth.token},
+      body: JSON.stringify(job)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      await loadJobs();
+    } else {
+      alert(data.error || "Failed to update job.");
+    }
+  }
   async function deleteJob(idx) {
     const job = jobs[idx];
     if (!job || !job.id) return alert("Job not found.");
@@ -598,8 +626,19 @@
       amount: 0
     };
   }
+  function setFormData(job) {
+    document.getElementById('customerName').value = job.customerName || "";
+    document.getElementById('jobDescription').value = job.jobDescription || "";
+    document.getElementById('jobLocation').value = job.jobLocation || "";
+    document.getElementById('deliveryDate').value = job.deliveryDate || "";
+    document.getElementById('proposedScheduledDate').value = job.proposedScheduledDate || "";
+    document.getElementById('scheduledDate').value = job.scheduledDate || "";
+  }
   function clearForm() {
     document.getElementById('job-form').reset();
+    editingJobId = null;
+    $submitBtn.textContent = "Add Job";
+    $cancelEditBtn.style.display = "none";
   }
   function formatDateToMMDDYYYY(dateStr) {
     if (!dateStr || dateStr.length !== 10) return "";
@@ -629,6 +668,7 @@
         <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
         <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
         <td>
+          <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
           <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
         </td>
       `;
@@ -653,6 +693,15 @@
       })[m];
     });
   }
+  window.editJob = function(id) {
+    const job = jobs.find(j => j.id === id);
+    if (!job) return alert("Job not found.");
+    setFormData(job);
+    editingJobId = id;
+    $submitBtn.textContent = "Save Changes";
+    $cancelEditBtn.style.display = "";
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
   document.getElementById('job-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const job = getFormData();
@@ -660,7 +709,11 @@
       alert('Please fill in all required fields: customer name and job description.');
       return;
     }
-    await addJob(job);
+    if (editingJobId) {
+      await updateJob(editingJobId, job);
+    } else {
+      await addJob(job);
+    }
     clearForm();
     let main = document.getElementById('mainApp');
     main.classList.remove('form-added');
@@ -668,6 +721,9 @@
     setTimeout(() => main.classList.remove('form-added'), 900);
   });
   document.getElementById('clearBtn').addEventListener('click', function() {
+    clearForm();
+  });
+  $cancelEditBtn.addEventListener('click', function() {
     clearForm();
   });
   document.getElementById('exportBtn').addEventListener('click', function() {
