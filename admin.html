@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Approval - Customer Job Scheduler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 3em auto; background: #f8fafc; color: #222; }
+    h1 { text-align: center; }
+    .pending-list { margin: 2em 0; }
+    .pending-user { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin-bottom: 1em; background: #fff; }
+    .pending-user span { display: block; margin-bottom: 0.2em; }
+    .pending-user button { margin-right: 1em; }
+    #loginSection { margin: 2em auto; max-width: 350px; background: #fff; padding: 2em 1em; border-radius: 12px; box-shadow: 0 2px 8px #0001; }
+    #errorMsg { color: #c00; margin: 1em 0; }
+    #successMsg { color: #198754; margin: 1em 0; }
+    #logoutBtn { float: right; }
+  </style>
+</head>
+<body>
+  <h1>Admin Approval</h1>
+  <div id="loginSection">
+    <label>
+      Username<br>
+      <input type="text" id="adminUsername" placeholder="Admin username" autocomplete="username" required>
+    </label>
+    <br><br>
+    <label>
+      Password<br>
+      <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password" required>
+    </label>
+    <br><br>
+    <button id="adminLoginBtn">Login as Admin</button>
+    <div id="errorMsg"></div>
+  </div>
+
+  <div id="adminSection" style="display:none;">
+    <button id="logoutBtn">Logout</button>
+    <h2>Pending User Approvals</h2>
+    <div id="successMsg"></div>
+    <div id="pendingList" class="pending-list"></div>
+  </div>
+
+  <script>
+    const API_URL = 'https://pfback-dcuc.onrender.com';
+    let adminToken = null;
+
+    function showLogin() {
+      document.getElementById('adminSection').style.display = 'none';
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('adminUsername').value = '';
+      document.getElementById('adminPassword').value = '';
+      document.getElementById('errorMsg').innerText = '';
+    }
+    function showAdmin() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('adminSection').style.display = '';
+      document.getElementById('successMsg').innerText = '';
+      loadPendingUsers();
+    }
+
+    document.getElementById('adminLoginBtn').onclick = async () => {
+      const username = document.getElementById('adminUsername').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+      document.getElementById('errorMsg').innerText = '';
+      try {
+        const r = await fetch(API_URL+'/api/login', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const res = await r.json();
+        if (!res.ok || !res.isAdmin) throw new Error(res.error || "Not admin");
+        adminToken = res.token;
+        showAdmin();
+      } catch(e) {
+        document.getElementById('errorMsg').innerText = e.message || "Login failed";
+      }
+    };
+    document.getElementById('logoutBtn').onclick = function() {
+      adminToken = null;
+      showLogin();
+    };
+
+    async function loadPendingUsers() {
+      const pendingList = document.getElementById('pendingList');
+      pendingList.innerHTML = "Loading...";
+      try {
+        const r = await fetch(API_URL+'/api/admin/pending-users', {
+          headers: { 'Authorization': adminToken }
+        });
+        const res = await r.json();
+        if (!res.users) throw new Error("No data");
+        if (res.users.length === 0) {
+          pendingList.innerHTML = "<i>No pending users.</i>";
+          return;
+        }
+        pendingList.innerHTML = "";
+        res.users.forEach(user => {
+          const div = document.createElement('div');
+          div.className = "pending-user";
+          div.innerHTML = `
+            <span><strong>Username:</strong> ${user.username}</span>
+            <span><strong>Requested:</strong> ${user.createdAt ? new Date(user.createdAt).toLocaleString() : ""}</span>
+            <button class="approveBtn">Approve</button>
+            <button class="denyBtn">Deny</button>
+          `;
+          div.querySelector('.approveBtn').onclick = () => approveUser(user.username);
+          div.querySelector('.denyBtn').onclick = () => denyUser(user.username);
+          pendingList.appendChild(div);
+        });
+      } catch(e) {
+        pendingList.innerHTML = "Failed to load users.";
+      }
+    }
+    async function approveUser(username) {
+      if (!confirm(`Approve user "${username}"?`)) return;
+      try {
+        const r = await fetch(API_URL+'/api/admin/approve', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+          body: JSON.stringify({username})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error("Error approving user");
+        document.getElementById('successMsg').innerText = `User "${username}" approved.`;
+        loadPendingUsers();
+      } catch(e) {
+        alert("Failed: "+e.message);
+      }
+    }
+    async function denyUser(username) {
+      if (!confirm(`Deny (delete) user "${username}"?`)) return;
+      try {
+        const r = await fetch(API_URL+'/api/admin/deny', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+          body: JSON.stringify({username})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error("Error denying user");
+        document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
+        loadPendingUsers();
+      } catch(e) {
+        alert("Failed: "+e.message);
+      }
+    }
+    showLogin();
+  </script>
+</body>
+</html>
