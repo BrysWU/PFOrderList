@@ -280,6 +280,16 @@
     tr:last-child td {
       border-bottom: none;
     }
+    .job-added-by {
+      display: block;
+      font-size: 0.90em;
+      color: #888;
+      opacity: 0.8;
+      margin-top: 0.2em;
+    }
+    body.dark .job-added-by {
+      color: #bcbcf7;
+    }
     .action-btn {
       padding: 0.38em 1.2em;
       font-size: 1rem;
@@ -627,6 +637,11 @@
         body: JSON.stringify({username, password})
       });
       const res = await r.json();
+      if (res.error && res.error === "Account pending approval") {
+        document.getElementById('authError').innerText = "Account pending admin approval. Please wait.";
+        showBackendLoader(false);
+        return;
+      }
       if (!res.ok) throw new Error(res.error || "Login failed");
       auth.token = res.token;
       auth.username = res.username;
@@ -651,6 +666,11 @@
         body: JSON.stringify({username, password})
       });
       const res = await r.json();
+      if (res.pendingApproval) {
+        document.getElementById('signupError').style.color = "#2563eb";
+        document.getElementById('signupError').innerText = "Request submitted, waiting for admin approval.";
+        return;
+      }
       if (!res.ok) throw new Error(res.error || "Signup failed");
       showLogin();
       document.getElementById('authUsername').value = username;
@@ -664,7 +684,7 @@
 
   function getJobsHash(jobsArr) {
     return JSON.stringify(jobsArr.map(j => [
-      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.notes, j.status, j.amount
+      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.notes, j.addedBy, j.status, j.amount
     ]));
   }
 
@@ -810,7 +830,6 @@
     const [year, month, day] = dateStr.split('-');
     return `${month}-${day}-${year}`;
   }
-  // Display multiline notes correctly in the table using <pre> style
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
@@ -833,7 +852,10 @@
         <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
         <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
         <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
-        <td><span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span></td>
+        <td>
+          <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
+          <span class="job-added-by">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
+        </td>
         <td>
           <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
           <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
