@@ -945,7 +945,7 @@
           backendReady = true;
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
-            $backendStatusMsg.innerHTML = `Backend is ready! Reloading... <span class="backend-loader" id="backendLoader"></span>`;
+            $backendStatusMsg.innerHTML = `Backend is ready! Reloading page . . . <span class="backend-loader" id="backendLoader"></span>`;
             $backendStatusIcon.innerText = "✅";
             showBackendLoader(true);
             setTimeout(() => {
@@ -966,9 +966,9 @@
       .catch(err => {
         backendReady = false;
         $backendStatusIcon.innerText = "💤";
-        $backendStatusMsg.innerHTML = `Backend is asleep or offline. Retrying in 100s... <span class="backend-loader" id="backendLoader"></span>`;
+        $backendStatusMsg.innerHTML = `Backend is asleep or offline. Retrying in a few seconds . . . <span class="backend-loader" id="backendLoader"></span>`;
         showBackendLoader(true);
-        setTimeout(() => checkBackend(), 1000000);
+        setTimeout(() => checkBackend(), 5000);
       });
   }
   function startApp() {
