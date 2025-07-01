@@ -537,6 +537,94 @@ body.dark .backend-loader:after {
   58%,
   100% {transform: rotate(calc(var(--s,1)*1turn))}
 }
+/* --- Modal Styles for Job History --- */
+#historyModal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(30, 30, 50, 0.31);
+  align-items: center;
+  justify-content: center;
+}
+#historyModal.active {
+  display: flex;
+}
+#historyModal .modal-content {
+  background: #fff;
+  color: #222;
+  border-radius: 12px;
+  max-width: 660px;
+  width: 96vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px #1a233877;
+  padding: 2em 2em 1.5em 2em;
+  animation: fade-in 0.4s;
+  position: relative;
+}
+body.dark #historyModal .modal-content {
+  background: #232337;
+  color: #d5e4ff;
+}
+#historyModal .modal-close {
+  position: absolute;
+  right: 1.3em;
+  top: 1.2em;
+  font-size: 1.5em;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+#historyModal .modal-close:hover { color: #e03f3f; }
+#historyModal h3 {
+  margin-bottom: 1.1em;
+  text-align: center;
+  color: var(--primary);
+}
+body.dark #historyModal h3 { color: #99b7ff;}
+.history-list {
+  padding: 0;
+  list-style: none;
+}
+.history-entry {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 1.1em;
+  padding-bottom: 1em;
+}
+body.dark .history-entry {
+  border-bottom: 1px solid #39395a;
+}
+.history-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.history-meta {
+  font-size: 0.97em;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 0.2em;
+}
+body.dark .history-meta { color: #99b7ff; }
+.history-action {
+  font-size: 0.97em;
+  margin-bottom: 0.4em;
+}
+.changes-list {
+  margin-left: 0.2em;
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+.changes-list li {
+  font-size: 0.96em;
+  margin-bottom: 0.08em;
+}
+@media (max-width: 550px) {
+  #historyModal .modal-content { padding: 1em 0.4em 1em 0.4em; }
+}
   </style>
 </head>
 <body>
@@ -638,6 +726,16 @@ body.dark .backend-loader:after {
       </table>
     </div>
   </main>
+  <!-- Job History Modal -->
+  <div id="historyModal">
+    <div class="modal-content">
+      <button class="modal-close" id="historyModalClose" aria-label="Close">&times;</button>
+      <h3>Job Change History</h3>
+      <div id="historyContent">
+        <div style="text-align:center;color:#888;">Loading...</div>
+      </div>
+    </div>
+  </div>
 <script>
   const API_URL = 'https://pfback-dcuc.onrender.com';
 
@@ -657,6 +755,11 @@ body.dark .backend-loader:after {
   const $backendStatusBar = document.getElementById('backendStatusBar');
   const $backendStatusMsg = document.getElementById('backendStatusMsg');
   const $backendLoader = document.getElementById('backendLoader');
+
+  // --- Modal Elements ---
+  const $historyModal = document.getElementById('historyModal');
+  const $historyModalClose = document.getElementById('historyModalClose');
+  const $historyContent = document.getElementById('historyContent');
 
   function showBackendLoader(show) {
     if (show) {
@@ -908,6 +1011,13 @@ body.dark .backend-loader:after {
     const [year, month, day] = dateStr.split('-');
     return `${month}-${day}-${year}`;
   }
+  function formatTimestamp(ts) {
+    if (!ts) return "";
+    try {
+      const date = new Date(ts);
+      return date.toLocaleString();
+    } catch { return ts; }
+  }
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
@@ -937,6 +1047,7 @@ body.dark .backend-loader:after {
         <td>
           <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
           <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
+          <button class="action-btn" style="background:#f3b700;color:#222;" title="View History" onclick="showJobHistory('${job.id || ""}')">History</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -969,6 +1080,74 @@ body.dark .backend-loader:after {
     $cancelEditBtn.style.display = "";
     window.scrollTo({top: 0, behavior: "smooth"});
   }
+
+  // --- JOB HISTORY FEATURE ---
+  window.showJobHistory = async function(id) {
+    if (!id) return;
+    $historyModal.classList.add('active');
+    $historyContent.innerHTML = `<div style="text-align:center;color:#888;">Loading...</div>`;
+    try {
+      const res = await fetch(API_URL + "/api/jobs/" + id + "/history", {
+        method: "GET",
+        headers: {'Authorization': auth.token}
+      });
+      if (!res.ok) throw new Error("Failed to fetch history");
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "Failed to get history");
+      if (!Array.isArray(data.history) || data.history.length === 0) {
+        $historyContent.innerHTML = `<div style="text-align:center;color:#888;">No change history for this job.</div>`;
+        return;
+      }
+      $historyContent.innerHTML = `<ul class="history-list"></ul>`;
+      const $list = $historyContent.querySelector('.history-list');
+      data.history.slice().reverse().forEach(entry => {
+        const $li = document.createElement('li');
+        $li.className = "history-entry";
+        $li.innerHTML = `
+          <div class="history-meta">
+            ${escapeHTML(entry.user || "unknown")} &ndash; ${formatTimestamp(entry.timestamp)}
+          </div>
+          <div class="history-action">
+            ${entry.action === "created" ? "<b>Created job</b>" : "<b>Updated</b>"}
+          </div>
+        `;
+        if (entry.action === "created") {
+          $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Initial values:</div>`;
+          if (entry.changes && typeof entry.changes === "object") {
+            $li.innerHTML += `<ul class="changes-list">${
+              Object.entries(entry.changes).map(([k,v]) =>
+                `<li><b>${escapeHTML(k)}:</b> ${escapeHTML(String(v))}</li>`
+              ).join("")
+            }</ul>`;
+          }
+        } else if (entry.action === "updated") {
+          if (entry.changes && typeof entry.changes === "object" && Object.keys(entry.changes).length) {
+            $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Changed fields:</div>
+              <ul class="changes-list">${
+                Object.entries(entry.changes).map(([k,v]) =>
+                  `<li><b>${escapeHTML(k)}:</b> <i>${escapeHTML(String(v.old))}</i> &rarr; <b>${escapeHTML(String(v.new))}</b></li>`
+                ).join("")
+              }</ul>`;
+          }
+        }
+        $list.appendChild($li);
+      });
+    } catch (e) {
+      $historyContent.innerHTML = `<div style="text-align:center;color:#e03f3f;">${escapeHTML(e.message || "Failed to load history")}</div>`;
+    }
+  };
+  $historyModalClose.onclick = function() {
+    $historyModal.classList.remove('active');
+    $historyContent.innerHTML = '';
+  };
+  $historyModal.onclick = function(e) {
+    if (e.target === $historyModal) {
+      $historyModal.classList.remove('active');
+      $historyContent.innerHTML = '';
+    }
+  };
+  // --- END JOB HISTORY ---
+
   document.getElementById('job-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const job = getFormData();
