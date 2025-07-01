@@ -1109,6 +1109,18 @@ body.dark .backend-loader:after {
     checkBackend();
   };
   window.deleteJob = deleteJob;
+
+  // Make date pickers open when clicking anywhere on their text input box
+  document.addEventListener('DOMContentLoaded', function() {
+    ['deliveryDate','proposedScheduledDate','scheduledDate'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        // Open the datepicker on focus or click (both for best browser support)
+        el.addEventListener('focus', function() { this.showPicker && this.showPicker(); });
+        el.addEventListener('click', function() { this.showPicker && this.showPicker(); });
+      }
+    });
+  });
 </script>
   
   <!-- Google tag (gtag.js) -->
