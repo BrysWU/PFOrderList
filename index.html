@@ -1043,7 +1043,7 @@ body.dark .backend-loader:after {
           backendReady = true;
           if (!sessionStorage.getItem('backendJustReloaded')) {
             sessionStorage.setItem('backendJustReloaded', '1');
-            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is ready! Reloading page . . .`;
+            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking if Backend is ready! Reloading page . . .`;
             showBackendLoader(true);
             setTimeout(() => {
               location.reload();
