@@ -36,7 +36,6 @@ body.dark {
   background: var(--dark-bg);
   color: var(--dark-text);
 }
-/* --- Auth Status Bar as Fixed Header --- */
 #authStatusBar {
   position: fixed;
   top: 0;
@@ -58,7 +57,6 @@ body.dark #authStatusBar {
   border-bottom: 1.5px solid var(--dark-border);
   box-shadow: 0 3px 18px #0004;
 }
-/* Title group centered in auth status bar */
 #authStatusBar .title-group {
   display: flex;
   flex-direction: column;
@@ -102,15 +100,12 @@ body.dark #authStatusBar #authWelcome { color: #99b7ff; }
   color: #fff;
   border: none;
 }
-/* Hide login/logout bar content until needed */
 #authStatusBar[style*="display:none"] {
   display: none !important;
 }
-/* Main content pushes down for fixed bar */
 main, #authSection, #signupSection {
   margin-top: 90px;
 }
-/* Responsive tweaks for status bar */
 @media (max-width: 900px) {
   #authStatusBar {
     flex-direction: column;
@@ -545,7 +540,6 @@ body.dark .backend-loader:after {
   left: 0; top: 0; width: 100vw; height: 100vh;
   align-items: center;
   justify-content: center;
-  /* Blur effect for background */
   background: rgba(30, 30, 50, 0.28);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -566,7 +560,6 @@ body.dark .backend-loader:after {
   padding: 2em 2em 1.5em 2em;
   animation: fade-in 0.4s;
   position: relative;
-  /* Add a subtle border for contrast */
   border: 2.5px solid var(--primary);
 }
 body.dark #historyModal .modal-content {
@@ -1031,6 +1024,10 @@ body.dark .history-meta { color: #99b7ff; }
     const [year, month, day] = dateStr.split('-');
     return `${month}-${day}-${year}`;
   }
+  function displayDateOrText(dateStr, emptyText) {
+    if (!dateStr || dateStr.length !== 10) return `<span style="opacity:.7;font-style:italic;">${emptyText}</span>`;
+    return formatDateToMMDDYYYY(dateStr);
+  }
   function formatTimestamp(ts) {
     if (!ts) return "";
     try {
@@ -1057,9 +1054,9 @@ body.dark .history-meta { color: #99b7ff; }
         <td>${escapeHTML(job.customerName)}</td>
         <td>${escapeHTML(job.jobDescription)}</td>
         <td>${escapeHTML(job.jobLocation)}</td>
-        <td>${formatDateToMMDDYYYY(job.deliveryDate)}</td>
-        <td>${formatDateToMMDDYYYY(job.proposedScheduledDate)}</td>
-        <td>${formatDateToMMDDYYYY(job.scheduledDate)}</td>
+        <td>${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
+        <td>${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
+        <td>${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
         <td>
           <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
           <span class="job-added-by">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
@@ -1100,8 +1097,6 @@ body.dark .history-meta { color: #99b7ff; }
     $cancelEditBtn.style.display = "";
     window.scrollTo({top: 0, behavior: "smooth"});
   }
-
-  // --- JOB HISTORY FEATURE ---
   window.showJobHistory = async function(id) {
     if (!id) return;
     $historyModal.classList.add('active');
@@ -1166,7 +1161,6 @@ body.dark .history-meta { color: #99b7ff; }
       $historyContent.innerHTML = '';
     }
   };
-  // --- END JOB HISTORY ---
 
   document.getElementById('job-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1312,26 +1306,21 @@ body.dark .history-meta { color: #99b7ff; }
   };
   window.deleteJob = deleteJob;
 
-  // Make date pickers open when clicking anywhere on their text input box
   document.addEventListener('DOMContentLoaded', function() {
     ['deliveryDate','proposedScheduledDate','scheduledDate'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) {
-        // Open the datepicker on focus or click (both for best browser support)
         el.addEventListener('focus', function() { this.showPicker && this.showPicker(); });
         el.addEventListener('click', function() { this.showPicker && this.showPicker(); });
       }
     });
   });
 </script>
-  
-  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-WGZXEDCM5F');
 </script>
 </body>
