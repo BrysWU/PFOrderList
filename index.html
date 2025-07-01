@@ -309,6 +309,7 @@ button[type="button"]:hover, .button.secondary:hover {
 .button.danger:hover, .action-btn:hover {
   background: var(--danger-hover);
 }
+    
 .table-wrapper {
   overflow-x: auto;
   background: #fff;
@@ -396,10 +397,23 @@ body.dark .job-added-by {
   color: var(--primary);
   border: 1.5px solid var(--primary);
   margin-right: 0.5em;
+  transition: background var(--transition), color var(--transition);
 }
 .edit-btn:hover {
   background: var(--primary-hover);
   color: #fff;
+}
+.edit-btn:hover, .edit-btn:focus {
+  color: #fff !important;
+}
+body.dark .edit-btn {
+  background: var(--dark-secondary);
+  color: #99b7ff;
+  border: 1.5px solid #99b7ff;
+}
+body.dark .edit-btn:hover, body.dark .edit-btn:focus {
+  background: var(--primary-hover);
+  color: #fff !important;
 }
 .action-btn:active, .edit-btn:active {
   transform: scale(0.96);
@@ -637,6 +651,18 @@ body.dark .history-meta { color: #99b7ff; }
 @media (max-width: 550px) {
   #historyModal .modal-content { padding: 1em 0.4em 1em 0.4em; }
   #historyModal .modal-close { left: 0.4em; top: 0.5em; width: 1.8em; height: 1.8em; font-size: 1em;}
+}
+
+/* ------ Custom: Make history button text white on hover ------ */
+.action-btn[title="View History"]:hover, 
+.action-btn[title="View History"]:focus {
+  color: #fff !important;
+  background: #f3b700 !important;
+}
+body.dark .action-btn[title="View History"]:hover, 
+body.dark .action-btn[title="View History"]:focus {
+  color: #fff !important;
+  background: #f3b700 !important;
 }
   </style>
 </head>
