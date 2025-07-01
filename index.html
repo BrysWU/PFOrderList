@@ -373,7 +373,7 @@ tr:last-child td {
   border-bottom: none;
 }
 .job-added-by {
-  display: block;
+  display: none;
   font-size: 0.90em;
   color: #888;
   opacity: 0.8;
@@ -664,6 +664,53 @@ body.dark .action-btn[title="View History"]:focus {
   color: #fff !important;
   background: #f3b700 !important;
 }
+/* --- Tooltip styles --- */
+.tooltip {
+  position: relative;
+  cursor: pointer;
+}
+.tooltip[data-tooltip]:hover:after, .tooltip[data-tooltip]:focus:after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 1000;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  font-size: 0.97em;
+  padding: 0.42em 0.9em;
+  border-radius: 6px;
+  white-space: pre-line;
+  box-shadow: 0 3px 14px #0003;
+  opacity: 1;
+  pointer-events:none;
+  margin-bottom: 8px;
+  min-width: 120px;
+  max-width: 300px;
+  text-align: center;
+  transition: opacity 0.14s;
+}
+.tooltip[data-tooltip]:hover:before, .tooltip[data-tooltip]:focus:before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  border: 6px solid transparent;
+  border-top: none;
+  border-bottom: 6px solid #222;
+  z-index: 1001;
+}
+body.dark .tooltip[data-tooltip]:hover:after, body.dark .tooltip[data-tooltip]:focus:after {
+  background: #34345c;
+  color: #d5e4ff;
+  border-color: #39395a;
+}
+body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:focus:before {
+  border-bottom: 6px solid #34345c;
+}
   </style>
 </head>
 <body>
@@ -750,14 +797,14 @@ body.dark .action-btn[title="View History"]:focus {
       <table id="jobTable">
         <thead>
           <tr>
-            <th>Customer Name</th>
-            <th>Job Description</th>
-            <th>Location</th>
-            <th>Delivery Date</th>
-            <th>Proposed Scheduled Date</th>
-            <th>Scheduled Date</th>
-            <th>Notes</th>
-            <th>Action</th>
+            <th class="tooltip" data-tooltip="Customer Name">Customer Name</th>
+            <th class="tooltip" data-tooltip="Job Description">Job Description</th>
+            <th class="tooltip" data-tooltip="Job Location">Location</th>
+            <th class="tooltip" data-tooltip="Delivery Date">Delivery Date</th>
+            <th class="tooltip" data-tooltip="Proposed Scheduled Date">Proposed Scheduled Date</th>
+            <th class="tooltip" data-tooltip="Scheduled Date">Scheduled Date</th>
+            <th class="tooltip" data-tooltip="Notes about this job">Notes</th>
+            <th class="tooltip" data-tooltip="Actions for this job">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -1077,20 +1124,20 @@ body.dark .action-btn[title="View History"]:focus {
     jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${escapeHTML(job.customerName)}</td>
-        <td>${escapeHTML(job.jobDescription)}</td>
-        <td>${escapeHTML(job.jobLocation)}</td>
-        <td>${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
-        <td>${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
-        <td>${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
-        <td>
+        <td class="tooltip" data-tooltip="Customer Name">${escapeHTML(job.customerName)}</td>
+        <td class="tooltip" data-tooltip="Job Description">${escapeHTML(job.jobDescription)}</td>
+        <td class="tooltip" data-tooltip="Job Location">${escapeHTML(job.jobLocation)}</td>
+        <td class="tooltip" data-tooltip="Delivery Date">${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
+        <td class="tooltip" data-tooltip="Proposed Scheduled Date">${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
+        <td class="tooltip" data-tooltip="Scheduled Date">${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
+        <td class="tooltip" data-tooltip="Notes (if any)">
           <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
-          <span class="job-added-by">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
+          <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
         </td>
         <td>
-          <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
-          <button class="action-btn" style="background:#f3b700;color:#222;" title="View History" onclick="showJobHistory('${job.id || ""}')">History</button>
-          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
+          <button class="edit-btn action-btn tooltip" title="Edit" data-tooltip="Edit this job" onclick="editJob('${job.id || ""}')">Edit</button>
+          <button class="action-btn tooltip" style="background:#f3b700;color:#222;" title="View History" data-tooltip="View job history" onclick="showJobHistory('${job.id || ""}')">History</button>
+          <button class="action-btn tooltip" title="Delete" data-tooltip="Delete this job" onclick="deleteJob(${idx})">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
