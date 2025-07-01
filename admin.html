@@ -193,7 +193,6 @@
       transition: color var(--transition);
     }
     body.dark .subtitle { color: #bcbcf7; }
-    /* Login section */
     #loginSection {
       max-width: 350px;
       margin: 2em auto 2em auto;
@@ -227,7 +226,6 @@
     #loginSection button { width: 100%; margin-bottom: 0.8em; }
     #errorMsg { color: #e03f3f; margin: 1em 0; font-weight:600;}
     #successMsg { color: #198754; margin: 1em 0; font-weight:600;}
-    /* Admin section */
     #adminSection {
       display: none;
     }
@@ -237,7 +235,7 @@
       gap: 1em;
       margin-bottom: 1.2em;
     }
-    #logoutBtn {
+    #logoutBtn2 {
       background: var(--danger);
       color: #fff;
       border: none;
@@ -252,7 +250,7 @@
       outline: none;
       margin-bottom: 1em;
     }
-    #logoutBtn:hover {
+    #logoutBtn2:hover {
       background: var(--danger-hover);
     }
     .pending-list, .user-list, .history-list {
@@ -313,7 +311,6 @@
       font-size: 0.98em;
       opacity: 0.74;
     }
-    /* History Table */
     .history-table-wrapper {
       overflow-x: auto;
       background: #fff;
@@ -381,7 +378,6 @@
       background: var(--dark-secondary);
       color: #999fc8;
     }
-    /* Tooltip styles */
     .tooltip {
       position: relative;
       cursor: pointer;
@@ -464,9 +460,9 @@
     </div>
     <h2>Pending User Approvals</h2>
     <div id="successMsg"></div>
-    <ul id="pendingList" class="pending-list"></ul>
+    <div id="pendingList" class="pending-list"></div>
     <h2>Current Users</h2>
-    <ul id="userList" class="user-list"></ul>
+    <div id="userList" class="user-list"></div>
     <h2>Site-wide Change History</h2>
     <div class="history-table-wrapper">
       <table class="history-table" id="historyTable">
@@ -534,6 +530,10 @@
     document.getElementById('logoutBtn').style.display = '';
     document.getElementById('logoutBtn2').style.display = '';
     document.getElementById('successMsg').innerText = '';
+    // clear old content to avoid confusion
+    document.getElementById('pendingList').innerHTML = '';
+    document.getElementById('userList').innerHTML = '';
+    document.getElementById('historyTbody').innerHTML = '';
     loadPendingUsers();
     loadUsers();
     loadSiteHistory();
@@ -566,7 +566,7 @@
   // Pending users
   async function loadPendingUsers() {
     const pendingList = document.getElementById('pendingList');
-    pendingList.innerHTML = "<li>Loading...</li>";
+    pendingList.innerHTML = "<div>Loading...</div>";
     try {
       const r = await fetch(API_URL+'/api/admin/pending-users', {
         headers: { 'Authorization': adminToken }
@@ -574,14 +574,14 @@
       const res = await r.json();
       if (!res.users) throw new Error("No data");
       if (res.users.length === 0) {
-        pendingList.innerHTML = "<li><i>No pending users.</i></li>";
+        pendingList.innerHTML = "<div style='opacity:.7;font-style:italic;'>No pending users.</div>";
         return;
       }
       pendingList.innerHTML = "";
       res.users.forEach(user => {
-        const li = document.createElement('li');
-        li.className = "pending-user";
-        li.innerHTML = `
+        const div = document.createElement('div');
+        div.className = "pending-user";
+        div.innerHTML = `
           <span><strong>Username:</strong> ${user.username}</span>
           <span><strong>Requested:</strong> ${user.createdAt ? new Date(user.createdAt).toLocaleString() : ""}</span>
           <div>
@@ -589,12 +589,12 @@
             <button class="denyBtn tooltip" data-tooltip="Deny/Delete user">Deny</button>
           </div>
         `;
-        li.querySelector('.approveBtn').onclick = () => approveUser(user.username);
-        li.querySelector('.denyBtn').onclick = () => denyUser(user.username);
-        pendingList.appendChild(li);
+        div.querySelector('.approveBtn').onclick = () => approveUser(user.username);
+        div.querySelector('.denyBtn').onclick = () => denyUser(user.username);
+        pendingList.appendChild(div);
       });
     } catch(e) {
-      pendingList.innerHTML = "<li>Failed to load users.</li>";
+      pendingList.innerHTML = "<div style='color:#e03f3f;'>Failed to load users.</div>";
     }
   }
   async function approveUser(username) {
@@ -635,7 +635,7 @@
   // List all users (admins and users)
   async function loadUsers() {
     const userList = document.getElementById('userList');
-    userList.innerHTML = "<li>Loading...</li>";
+    userList.innerHTML = "<div>Loading...</div>";
     try {
       const r = await fetch(API_URL+'/api/admin/all-users', {
         headers: { 'Authorization': adminToken }
@@ -643,14 +643,14 @@
       const res = await r.json();
       if (!res.users) throw new Error("No data");
       if (res.users.length === 0) {
-        userList.innerHTML = "<li><i>No users found.</i></li>";
+        userList.innerHTML = "<div style='opacity:.7;font-style:italic;'>No users found.</div>";
         return;
       }
       userList.innerHTML = "";
       res.users.forEach(user => {
-        const li = document.createElement('li');
-        li.className = "site-user";
-        li.innerHTML = `
+        const div = document.createElement('div');
+        div.className = "site-user";
+        div.innerHTML = `
           <div class="site-user-info">
             <span><strong>Username:</strong> ${user.username}</span>
             <span class="site-user-role">${user.isAdmin ? 'Admin' : 'User'}</span>
@@ -661,10 +661,10 @@
             ${user.isAdmin ? '' : `<button class="removeUserBtn tooltip" data-tooltip="Remove user" onclick="removeUser('${user.username}')">Remove</button>`}
           </div>
         `;
-        userList.appendChild(li);
+        userList.appendChild(div);
       });
     } catch(e) {
-      userList.innerHTML = "<li>Failed to load users.</li>";
+      userList.innerHTML = "<div style='color:#e03f3f;'>Failed to load users.</div>";
     }
   }
   window.removeUser = async function(username) {
@@ -699,7 +699,7 @@
         return;
       }
       tbody.innerHTML = "";
-      res.entries.slice().reverse().forEach(entry => {
+      res.entries.forEach(entry => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
@@ -711,7 +711,7 @@
         tbody.appendChild(tr);
       });
     } catch(e) {
-      tbody.innerHTML = `<tr><td colspan="5">Failed to load site history.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="color:#e03f3f;">Failed to load site history.</td></tr>`;
     }
   }
 
