@@ -1066,8 +1066,8 @@ body.dark .history-meta { color: #99b7ff; }
         </td>
         <td>
           <button class="edit-btn action-btn" title="Edit" onclick="editJob('${job.id || ""}')">Edit</button>
-          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
           <button class="action-btn" style="background:#f3b700;color:#222;" title="View History" onclick="showJobHistory('${job.id || ""}')">History</button>
+          <button class="action-btn" title="Delete" onclick="deleteJob(${idx})">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
