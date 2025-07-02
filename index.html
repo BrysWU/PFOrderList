@@ -736,6 +736,7 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
       <span class="backend-loader" id="backendLoader"></span>
     </span>
   </div>
+  <h1 id="loginTitle" style="display:none;">HD Customer Scheduler</h1>
   <div id="authSection" class="auth-section" style="display:none;">
     <h2 id="authTitle">Login</h2>
     <input type="text" id="authUsername" placeholder="Username" autocomplete="username">
@@ -834,6 +835,7 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
   let liveUpdateTimer = null;
   let lastJobsHash = null;
   const $authSection    = document.getElementById('authSection');
+  const $loginTitle     = document.getElementById('loginTitle');
   const $signupSection  = document.getElementById('signupSection');
   const $mainApp        = document.getElementById('mainApp');
   const $authStatusBar  = document.getElementById('authStatusBar');
@@ -859,6 +861,7 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
   }
 
   function showLogin() {
+    $loginTitle.style.display = 'block';
     $authSection.style.display = 'block';
     $signupSection.style.display = 'none';
     $mainApp.style.display = 'none';
@@ -880,6 +883,7 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
     stopLiveUpdates();
   }
   function showMain() {
+    $loginTitle.style.display = 'none';
     $authSection.style.display = 'none';
     $signupSection.style.display = 'none';
     $mainApp.style.display = '';
