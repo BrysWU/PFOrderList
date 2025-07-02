@@ -193,7 +193,6 @@
       transition: color var(--transition);
     }
     body.dark .subtitle { color: #bcbcf7; }
-    /* Login section */
     #loginSection {
       max-width: 350px;
       margin: 2em auto 2em auto;
@@ -227,7 +226,6 @@
     #loginSection button { width: 100%; margin-bottom: 0.8em; }
     #errorMsg { color: #e03f3f; margin: 1em 0; font-weight:600;}
     #successMsg { color: #198754; margin: 1em 0; font-weight:600;}
-    /* Admin section */
     #adminSection {
       display: none;
     }
@@ -313,7 +311,6 @@
       font-size: 0.98em;
       opacity: 0.74;
     }
-    /* History Table */
     .history-table-wrapper {
       overflow-x: auto;
       background: #fff;
@@ -381,7 +378,6 @@
       background: var(--dark-secondary);
       color: #999fc8;
     }
-    /* Tooltip styles */
     .tooltip {
       position: relative;
       cursor: pointer;
@@ -458,7 +454,7 @@
     <button id="adminLoginBtn">Login as Admin</button>
     <div id="errorMsg"></div>
   </div>
-  <main id="adminSection" style="display:none;">
+  <main id="adminSection">
     <div class="admin-controls">
       <button id="logoutBtn2" title="Logout">Logout</button>
     </div>
