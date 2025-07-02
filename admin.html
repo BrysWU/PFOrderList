@@ -429,6 +429,10 @@
     body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:focus:before {
       border-bottom: 6px solid #34345c;
     }
+    .auth-section h2 {
+    margin-bottom: 1em;
+    text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -446,6 +450,7 @@
     <button class="button secondary" id="logoutBtn" style="display:none;">Logout</button>
   </div>
   <div id="loginSection">
+    <h2 id="authTitle">Login</h2>
     <label>
       Username<br>
       <input type="text" id="adminUsername" placeholder="Admin username" autocomplete="username" required>
