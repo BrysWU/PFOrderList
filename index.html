@@ -750,10 +750,21 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
     <span id="darkToggleText">Dark Mode</span>
   </button>
   <div id="authStatusBar" class="auth-status-bar" style="">
-    <h1>Customer Job Scheduler</h1>
-    <div class="subtitle">For HD Installations</div>
-    <span id="authWelcome">Logged in as brys</span>
-    <button class="button secondary" id="logoutBtn">Logout</button>
+    <div class="topbar-left-group">
+      <div class="export-import-bar">
+        <button class="button" id="exportBtn">Export Jobs</button>
+        <label>
+          <input type="file" id="importFile" accept=".json">
+          <span class="button secondary" tabindex="0">Import Jobs</span>
+        </label>
+      </div>
+      <h1>Customer Job Scheduler</h1>
+    </div>
+    <div>
+      <div class="subtitle">For HD Installations</div>
+      <span id="authWelcome">Logged in as brys</span>
+      <button class="button secondary" id="logoutBtn">Logout</button>
+    </div>
   </div>
   <div id="backendStatusBar" style="display: none;position: fixed;position-area: center;">
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
@@ -818,13 +829,6 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
         <button type="button" class="button" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
       </div>
     </form>
-    <div class="export-import-bar">
-      <button class="button" id="exportBtn">Export Jobs</button>
-      <label>
-        <input type="file" id="importFile" accept=".json">
-        <span class="button secondary" tabindex="0">Import Jobs</span>
-      </label>
-    </div>
     <h2>Job List</h2>
     <div class="table-wrapper">
       <table id="jobTable">
