@@ -606,10 +606,11 @@
         body: JSON.stringify({username})
       });
       const res = await r.json();
-      if (!res.ok) throw new Error("Error approving user");
+      if (!res.ok) throw new Error(res.error || "Error approving user");
       document.getElementById('successMsg').innerText = `User "${username}" approved.`;
       loadPendingUsers();
       loadUsers();
+      loadSiteHistory();
     } catch(e) {
       alert("Failed: "+e.message);
     }
@@ -623,10 +624,11 @@
         body: JSON.stringify({username})
       });
       const res = await r.json();
-      if (!res.ok) throw new Error("Error denying user");
+      if (!res.ok) throw new Error(res.error || "Error denying user");
       document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
       loadPendingUsers();
       loadUsers();
+      loadSiteHistory();
     } catch(e) {
       alert("Failed: "+e.message);
     }
@@ -658,16 +660,19 @@
             <span><strong>Joined:</strong> ${user.createdAt ? new Date(user.createdAt).toLocaleString() : ""}</span>
           </div>
           <div>
-            ${user.isAdmin ? '' : `<button class="removeUserBtn tooltip" data-tooltip="Remove user" onclick="removeUser('${user.username}')">Remove</button>`}
+            ${user.isAdmin ? '' : `<button class="removeUserBtn tooltip" data-tooltip="Remove user">Remove</button>`}
           </div>
         `;
+        if (!user.isAdmin) {
+          li.querySelector('.removeUserBtn').onclick = () => removeUser(user.username);
+        }
         userList.appendChild(li);
       });
     } catch(e) {
       userList.innerHTML = "<li>Failed to load users.</li>";
     }
   }
-  window.removeUser = async function(username) {
+  async function removeUser(username) {
     if (!confirm(`Remove user "${username}" from the site?`)) return;
     try {
       const r = await fetch(API_URL+'/api/admin/remove-user', {
@@ -676,13 +681,14 @@
         body: JSON.stringify({username})
       });
       const res = await r.json();
-      if (!res.ok) throw new Error("Error removing user");
+      if (!res.ok) throw new Error(res.error || "Error removing user");
       document.getElementById('successMsg').innerText = `User "${username}" removed.`;
       loadUsers();
+      loadSiteHistory();
     } catch(e) {
       alert("Failed: "+e.message);
     }
-  };
+  }
 
   // Site-wide history
   async function loadSiteHistory() {
@@ -699,7 +705,7 @@
         return;
       }
       tbody.innerHTML = "";
-      res.entries.slice().reverse().forEach(entry => {
+      res.entries.forEach(entry => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
@@ -717,6 +723,7 @@
 
   // Initial page load
   showLogin();
+
 </script>
 </body>
 </html>
