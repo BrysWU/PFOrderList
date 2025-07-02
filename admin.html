@@ -202,6 +202,9 @@
       box-shadow: 0 2px 10px #0001;
       transition: background var(--transition), box-shadow var(--transition);
       animation: fade-in 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      place-self: anchor-center;
+      position: absolute;
+      text-align-last: center;
     }
     body.dark #loginSection {
       background: var(--dark-card);
@@ -516,7 +519,7 @@
 
   function showLogin() {
     document.getElementById('adminSection').style.display = 'none';
-    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('loginSection').style.display = 'flow';
     document.getElementById('authStatusBar').style.display = 'none';
     document.getElementById('adminUsername').value = '';
     document.getElementById('adminPassword').value = '';
