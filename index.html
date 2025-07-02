@@ -87,17 +87,22 @@ body.dark #authStatusBar {
 }
 body.dark #authStatusBar .subtitle { color: #bcbcf7; }
 #authStatusBar #authWelcome {
-  margin-left: 2em;
-  font-weight: 600;
-  color: var(--primary);
-  white-space: nowrap;
+  margin-right: 2em;
+    font-weight: 600;
+    color: var(--primary);
+    white-space: nowrap;
+    position: fixed;
+    right: 10em;
 }
 body.dark #authStatusBar #authWelcome { color: #99b7ff; }
 #authStatusBar #logoutBtn {
-  margin-left: 1.2em;
-  background: var(--danger);
-  color: #fff;
-  border: none;
+  margin-right: 1.2em;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    position: fixed;
+    right: 2em;
+    top: 1.5em;
 }
 #authStatusBar[style*="display:none"] {
   display: none !important;
@@ -720,12 +725,10 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
     <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
     <span id="darkToggleText">Dark Mode</span>
   </button>
-  <div id="authStatusBar" class="auth-status-bar" style="display:none;">
-    <div class="title-group">
-      <h1>Customer Job Scheduler</h1>
-      <div class="subtitle">For HD Installations</div>
-    </div>
-    <span id="authWelcome"></span>
+  <div id="authStatusBar" class="auth-status-bar" style="">
+    <h1>Customer Job Scheduler</h1>
+    <div class="subtitle">For HD Installations</div>
+    <span id="authWelcome">Logged in as brys</span>
     <button class="button secondary" id="logoutBtn">Logout</button>
   </div>
   <div id="backendStatusBar" style="display: none;position: fixed;position-area: center;">
