@@ -709,7 +709,7 @@
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
           <td>${entry.user || ''}</td>
           <td>${entry.action || ''}</td>
-          <td>${entry.target || ''}</td>
+          <td>${entry.targetName ? entry.targetName : (entry.target || '')}</td>
           <td><pre style="white-space: pre-line; font-size:0.97em; background:none; border:none; margin:0; padding:0;">${entry.details ? JSON.stringify(entry.details, null, 2) : ''}</pre></td>
         `;
         tbody.appendChild(tr);
