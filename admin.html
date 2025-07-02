@@ -705,6 +705,7 @@
       tbody.innerHTML = "";
       res.entries.forEach(entry => {
         const tr = document.createElement('tr');
+        // Show targetName if present, else fallback to target
         tr.innerHTML = `
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
           <td>${entry.user || ''}</td>
