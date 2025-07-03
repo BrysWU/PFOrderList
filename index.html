@@ -1270,9 +1270,9 @@ body.dark #customerSearchBar {
           <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
         </td>
         <td>
-          <button class="edit-btn action-btn tooltip" title="Edit" data-tooltip="Edit this job" onclick="editJob('${job.id || ""}')">Edit</button>
-          <button class="action-btn tooltip" style="background:#f3b700;color:#222;" title="View History" data-tooltip="View job history" onclick="showJobHistory('${job.id || ""}')">History</button>
-          <button class="action-btn tooltip" title="Delete" data-tooltip="Delete this job" onclick="deleteJob(${jobs.findIndex(j=>j.id===job.id)})">Delete</button>
+          <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job._id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="action-btn" title="View History" onclick="showHistory('${job._id}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
+          <button class="action-btn button danger" title="Delete Job" onclick="deleteJob('${job._id}')"><i class="fa-solid fa-trash"></i></button>
         </td>
       `;
       tbody.appendChild(tr);
