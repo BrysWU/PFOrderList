@@ -1103,16 +1103,6 @@ body.dark #notificationPopup .notif-sub {
   #notificationPopup.visible { margin-left: 2vw;}
 }
     /* Glowing Border Animation */
-.animated-border, .animated-border-glow{
-  max-height: 200px;
-  max-width: 250px;
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  overflow: hidden; 
-  z-index: 0;
-  border-radius: 10px;
-}
 .animated-border-box, .animated-border-box-glow{
     max-height: 345.81px;
     max-width: 350px;
@@ -1129,26 +1119,7 @@ body.dark #notificationPopup .notif-sub {
   overflow: hidden;
   filter: blur(20px);
 }
-    .animated-border-glow1{
-  overflow: hidden;
-  filter: blur(20px);
-}
 .animated-border-box:before, .animated-border-box-glow:before {
-  content: '';
-  z-index: -2;
-  text-align: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(0deg);
-  position: absolute;
-  width: 99999px;
-  height: 99999px;
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
-  animation: rotate 4s linear infinite;
-}
-    .animated-border:before, .animated-border-glow:before {
   content: '';
   z-index: -2;
   text-align: center;
@@ -1171,23 +1142,7 @@ body.dark #notificationPopup .notif-sub {
   top: 5px;
   width: calc(100% - 10px);
   height: calc(100% - 10px);
-  background: var(--dark-card);
-  border-radius: 7px;
-}
-@keyframes rotate {
-  100% {
-    transform: translate(-50%, -50%) rotate(1turn);
-  }
-}
-    .animated-border:after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  left: 5px;
-  top: 5px;
-  width: calc(100% - 10px);
-  height: calc(100% - 10px);
-  background: #292a2e;
+  background: #fff;
   border-radius: 7px;
 }
 @keyframes rotate {
