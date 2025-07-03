@@ -949,10 +949,11 @@ body.dark #customerSearchBar {
     #siteWarningBanner {
       display: none;
       position: fixed;
+      /* --- changed: insert below bar --- */
       top: 0;
       left: 0; right: 0;
       width: 100vw;
-      z-index: 3500;
+      z-index: 201; /* must be above authStatusBar */
       background: repeating-linear-gradient(
         135deg,
         #f3b700, #f3b700 18px,
@@ -964,7 +965,6 @@ body.dark #customerSearchBar {
       overflow: hidden;
       user-select: none;
       cursor: not-allowed;
-      
     }
     #siteWarningBanner, #siteWarningBannerText {
       text-shadow: 0 1px 0 #fff7, 0 2px 6px #23232355;
@@ -978,38 +978,32 @@ body.dark #customerSearchBar {
       0% { background-position: 0 0; }
       100% { background-position: 80px 0; }
     }
-    body.banner-active {
-      padding-top: 4.3em !important;
-      /* To avoid content hidden under fixed warning */
+
+    /* --- New: Move the banner below the auth bar when active --- */
+    body.banner-active #siteWarningBanner {
+      top: 70px; /* height of #authStatusBar */
     }
+    body.banner-active #authStatusBar {
+      z-index: 210;
+    }
+
+    /* Remove body.banner-active padding-top, not needed with banner below bar */
+    body.banner-active {
+      padding-top: 0 !important;
+    }
+
+    /* Responsive: adjust top offset for banner and auth bar at small sizes */
     @media (max-width: 760px) {
       #siteWarningBanner { font-size: 1em; padding: 1em 0; }
-      body.banner-active { padding-top: 3.3em !important; }
+      body.banner-active #siteWarningBanner { top: 60px; }
     }
     @media (max-width: 430px) {
       #siteWarningBanner { font-size: 0.95em; }
-      body.banner-active { padding-top: 2.2em !important; }
+      body.banner-active #siteWarningBanner { top: 50px; }
     }
   </style>
 </head>
 <body>
-  <div id="siteWarningBanner">
-    <span>
-      <div id="siteWarningBannerText">
-      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-right:0.6em;"></i>
-      <span style="vertical-align:middle;">
-        <span style="border-bottom:2px dashed #232323;padding-bottom:0.1em;">Site Update Notice</span>: 
-        This website is undergoing maintenance or updates. Some features may be temporarily unavailable and service may be interrupted. Thank you for your patience.
-      </span>
-      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-left:0.6em;"></i>
-      </div>
-    </span>
-  </div>
-  <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
-    <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
-    <span id="darkToggleText">Dark Mode</span>
-  </button>
   <div id="authStatusBar" class="auth-status-bar">
     <div class="auth-status-bar-inner">
       <div class="topbar-left-group">
@@ -1031,6 +1025,23 @@ body.dark #customerSearchBar {
       </div>
     </div>
   </div>
+  <div id="siteWarningBanner">
+    <span>
+      <div id="siteWarningBannerText">
+      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-right:0.6em;"></i>
+      <span style="vertical-align:middle;">
+        <span style="border-bottom:2px dashed #232323;padding-bottom:0.1em;">Site Update Notice</span>: 
+        This website is undergoing maintenance or updates. Some features may be temporarily unavailable and service may be interrupted. Thank you for your patience.
+      </span>
+      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-left:0.6em;"></i>
+      </div>
+    </span>
+  </div>
+  <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
+    <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
+    <span id="darkToggleText">Dark Mode</span>
+  </button>
   <div id="backendStatusBar" style="display: none;position: fixed;position-area: center;">
     <span id="backendStatusMsg" style="margin-left:0.8em;font-size:1.1em;color:#2563eb;">
       Checking backend status
