@@ -556,6 +556,23 @@
       }
       #notificationPopup.visible { margin-left: 2vw;}
     }
+    /* Delete button styles for history */
+    .deleteHistoryBtn {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4em 1em;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0.5em;
+      box-shadow: 0 2px 6px #ef444420;
+      transition: background var(--transition), color var(--transition);
+    }
+    .deleteHistoryBtn:hover {
+      background: var(--danger-hover);
+    }
   </style>
 </head>
 <body>
@@ -618,6 +635,7 @@
             <th class="tooltip" data-tooltip="Action performed">Action</th>
             <th class="tooltip" data-tooltip="Affected Job/User">Target</th>
             <th class="tooltip" data-tooltip="Details of the changes">Details</th>
+            <th>Delete</th>
           </tr>
         </thead>
         <tbody id="historyTbody">
@@ -928,10 +946,27 @@
     }
   }
 
+  // Delete history entry
+  async function deleteHistoryEntry(entryId) {
+    if (!confirm("Delete this history entry? This cannot be undone.")) return;
+    try {
+      const r = await fetch(API_URL+'/api/admin/delete-history', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
+        body: JSON.stringify({ id: entryId })
+      });
+      const res = await r.json();
+      if (!res.ok) throw new Error(res.error || "Failed to delete history entry");
+      loadSiteHistory();
+    } catch (e) {
+      alert("Failed: " + e.message);
+    }
+  }
+
   // Site-wide history, with notification
   async function loadSiteHistory(showNotif = true) {
     const tbody = document.getElementById('historyTbody');
-    tbody.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">Loading...</td></tr>`;
     try {
       const r = await fetch(API_URL+'/api/admin/site-history', {
         headers: { 'Authorization': adminToken }
@@ -939,7 +974,7 @@
       const res = await r.json();
       if (!res.ok || !Array.isArray(res.entries)) throw new Error("No history found");
       if (res.entries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5"><i>No history entries.</i></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><i>No history entries.</i></td></tr>`;
         prevSiteHistory = [];
         return;
       }
@@ -1002,11 +1037,14 @@
           <td>${entry.action || ''}</td>
           <td>${entry.targetName ? entry.targetName : (entry.target || '')}</td>
           <td><pre style="white-space: pre-line; font-size:0.97em; background:none; border:none; margin:0; padding:0;">${entry.details ? JSON.stringify(entry.details, null, 2) : ''}</pre></td>
+          <td><button class="deleteHistoryBtn tooltip" data-tooltip="Delete this history entry" data-id="${entry._id || ''}">Delete</button></td>
         `;
+        const btn = tr.querySelector('.deleteHistoryBtn');
+        btn.onclick = () => deleteHistoryEntry(entry._id);
         tbody.appendChild(tr);
       });
     } catch(e) {
-      tbody.innerHTML = `<tr><td colspan="5">Failed to load site history.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6">Failed to load site history.</td></tr>`;
     }
   }
 
