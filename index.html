@@ -1103,7 +1103,7 @@ body.dark #notificationPopup .notif-sub {
   #notificationPopup.visible { margin-left: 2vw;}
 }
     /* Glowing Border Animation */
-.animated-border-box, .animated-border-box-glow{
+.animated-border-box1, .animated-border-box-glow1{
   max-height: 200px;
   max-width: 250px;
   height: 100%;
@@ -1113,7 +1113,23 @@ body.dark #notificationPopup .notif-sub {
   z-index: 0;
   border-radius: 10px;
 }
+.animated-border-box, .animated-border-box-glow{
+    max-height: 345.81px;
+    max-width: 350px;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+    z-index: 0;
+    border-radius: 10px;
+    justify-self: anchor-center;
+    align-self: anchor-center;
+}
 .animated-border-box-glow{
+  overflow: hidden;
+  filter: blur(20px);
+}
+    .animated-border-box-glow1{
   overflow: hidden;
   filter: blur(20px);
 }
@@ -1132,7 +1148,38 @@ body.dark #notificationPopup .notif-sub {
   background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
   animation: rotate 4s linear infinite;
 }
+    .animated-border-box1:before, .animated-border-box-glow1:before {
+  content: '';
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  position: absolute;
+  width: 99999px;
+  height: 99999px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+  animation: rotate 4s linear infinite;
+}
 .animated-border-box:after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 5px;
+  top: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  background: #292a2e;
+  border-radius: 7px;
+}
+@keyframes rotate {
+  100% {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+    .animated-border-box1:after {
   content: '';
   position: absolute;
   z-index: -1;
@@ -1277,8 +1324,8 @@ body.dark #notificationPopup .notif-sub {
     <!-- Job List header row with live search bar -->
     <div class="joblist-header-row">
   <div class="animated-border-parent" style="position:relative; max-width:250px; min-width:230px;">
-    <div class="animated-border-box-glow"></div>
-    <div class="animated-border-box"></div>
+    <div class="animated-border-box-glow1"></div>
+    <div class="animated-border-box1"></div>
     <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="on" />
   </div>   
       <div class="joblist-header-center">
