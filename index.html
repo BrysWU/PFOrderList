@@ -11,6 +11,8 @@
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --secondary: #f1f5f9;
+  --warning: #f3b700;
+  --warning-hover: #ffc300;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --border: #e5e7eb;
@@ -496,6 +498,32 @@ body.dark .edit-btn:hover, body.dark .edit-btn:focus {
 .action-btn:active, .edit-btn:active {
   transform: scale(0.96);
 }
+    .his-btn {
+  background: #fff;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  margin-right: 0.5em;
+  transition: background var(--transition), color var(--transition);
+}
+.his-btn:hover {
+  background: var(--primary-hover);
+  color: #fff;
+}
+.his-btn:hover, .his-btn:focus {
+  color: #fff !important;
+}
+body.dark .his-btn {
+  background: var(--dark-secondary);
+  color: #99b7ff;
+  border: 1.5px solid #99b7ff;
+}
+body.dark .his-btn:hover, body.dark .his-btn:focus {
+  background: var(--primary-hover);
+  color: #fff !important;
+}
+.action-btn:active, .his-btn:active {
+  transform: scale(0.96);
+}
 @keyframes pop-btn {
   0% { opacity: 0; transform: scale(0.8);}
   100% { opacity: 1; transform: scale(1);}
@@ -803,10 +831,19 @@ body.dark #customerSearchBar {
     font-size: 0.98rem;
   }
   .joblist-header-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.4em;
-  }
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  margin-bottom: 0.7em;
+}
+  .joblist-header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.joblist-header-center h2 {
+  text-align: center;
+  width: 100%;
 }
   </style>
 </head>
@@ -902,9 +939,11 @@ body.dark #customerSearchBar {
     </form>
     <!-- Job List header row with live search bar -->
     <div class="joblist-header-row">
-      <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="off" />
-      <h2 style="margin:0;">Job List</h2>
-    </div>
+  <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="on" />
+  <div class="joblist-header-center">
+    <h2 style="margin:0;">Job List</h2>
+  </div>
+  </div>
     <div class="table-wrapper">
       <table id="jobTable">
         <thead>
@@ -1271,7 +1310,7 @@ body.dark #customerSearchBar {
         </td>
         <td>
           <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job._id}')"><i class="fa-solid fa-pen"></i></button>
-          <button class="action-btn" title="View History" onclick="showHistory('${job._id}')"><i class="fa-solid fa-clock-rotate-left" style="color: #FFD43B;"></i></button>
+          <button class="action-btn his-btn" title="View History" onclick="showHistory('${job._id}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
           <button class="action-btn button danger" title="Delete Job" onclick="deleteJob('${job._id}')"><i class="fa-solid fa-trash"></i></button>
         </td>
       `;
