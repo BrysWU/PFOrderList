@@ -860,20 +860,39 @@ body.dark #customerSearchBar {
     font-size: 0.98rem;
   }
   .joblist-header-row {
-  display: flex;
-  align-items: center;
-  gap: 1.2em;
-  margin-bottom: 0.7em;
-}
-  .joblist-header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-.joblist-header-center h2 {
-  text-align: center;
-  width: 100%;
-}
+      display: flex;
+      align-items: center;
+      gap: 1.2em;
+      margin-bottom: 0.7em;
+      width: 100%;
+    }
+    .joblist-header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+    .joblist-header-center h2 {
+      margin: 0;
+      text-align: center;
+      width: 100%;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    @media (max-width: 700px) {
+      .joblist-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8em;
+      }
+      .joblist-header-center {
+        justify-content: center;
+        margin-top: 0.3em;
+      }
+      .joblist-header-center h2 {
+        font-size: 1.3rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -968,11 +987,11 @@ body.dark #customerSearchBar {
     </form>
     <!-- Job List header row with live search bar -->
     <div class="joblist-header-row">
-  <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="on" />
-  <div class="joblist-header-center">
-    <h2 style="margin:0;">Job List</h2>
-  </div>
-  </div>
+      <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="on" />
+      <div class="joblist-header-center">
+        <h2>Job List</h2>
+      </div>
+    </div>
     <div class="table-wrapper">
       <table id="jobTable">
         <thead>
