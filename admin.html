@@ -430,26 +430,26 @@
       border-bottom: 6px solid #34345c;
     }
     .auth-section h2 {
-    margin-bottom: 1em;
-    text-align: center;
+      margin-bottom: 1em;
+      text-align: center;
     }
     button, .button {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 0.7em 1.8em;
-    font-size: 1.03rem;
-    font-family: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 3px 8px #2563eb12;
-    transition: background var(--transition), box-shadow var(--transition), color var(--transition);
-    outline: none;
-    position: relative;
-    overflow: hidden;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.7em 1.8em;
+      font-size: 1.03rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 8px #2563eb12;
+      transition: background var(--transition), box-shadow var(--transition), color var(--transition);
+      outline: none;
+      position: relative;
+      overflow: hidden;
     }
-  .banner-toggle-group {
+    .banner-toggle-group {
       display: flex;
       align-items: center;
       gap: 0.7em;
@@ -472,7 +472,7 @@
       color: #ffd978;
       box-shadow: 0 2px 8px #f9b70029;
     }
-  /* Notification popup styles */
+    /* Notification popup styles */
     #notificationPopup {
       position: fixed;
       top: 85px;
@@ -559,7 +559,6 @@
   </style>
 </head>
 <body>
-  <!-- Notification Popup -->
   <div id="notificationPopup" style="display:none;">
     <button class="notif-close" title="Close notification" onclick="hideNotificationPopup()">&times;</button>
     <div class="notif-title">New Update</div>
@@ -597,7 +596,6 @@
     <div class="admin-controls">
       <button id="logoutBtn2" title="Logout">Logout</button>
     </div>
-    <!-- Banner toggle UI -->
     <div class="banner-toggle-group" id="bannerToggleGroup">
       <input type="checkbox" id="bannerToggleCheckbox">
       <label for="bannerToggleCheckbox" style="cursor:pointer;">
@@ -632,7 +630,7 @@
   let adminToken = null;
   let adminUsername = null;
 
-  // --- Notification popup ---
+  // Notification popup logic
   const $notifPopup = document.getElementById('notificationPopup');
   const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
   let notifTimer = null;
@@ -656,7 +654,70 @@
   }
   window.hideNotificationPopup = hideNotificationPopup;
 
-  // --- Dark mode toggle ---
+  // Banner logic
+  const $bannerToggleGroup = document.getElementById('bannerToggleGroup');
+  const $bannerToggleCheckbox = document.getElementById('bannerToggleCheckbox');
+  const $bannerToggleStatus = document.getElementById('bannerToggleStatus');
+  let bannerStateLast = null;
+  let bannerPollTimer = null;
+
+  function updateBannerCheckboxUI(enabled, loading) {
+    $bannerToggleCheckbox.checked = !!enabled;
+    $bannerToggleStatus.innerText = loading ? "Updating..." : (enabled ? "Banner is ON" : "Banner is OFF");
+  }
+
+  async function fetchBannerState() {
+    try {
+      const r = await fetch(API_URL + '/api/banner');
+      const res = await r.json();
+      if (res && typeof res.enabled === "boolean") {
+        updateBannerCheckboxUI(res.enabled, false);
+        if (bannerStateLast !== null && res.enabled !== bannerStateLast) {
+          // Change detected, notification
+          showNotificationPopup(
+            "Banner Update",
+            `Site banner is now ${res.enabled ? "ENABLED" : "DISABLED"}`
+          );
+        }
+        bannerStateLast = res.enabled;
+      }
+    } catch (e) {
+      $bannerToggleStatus.innerText = "Error loading banner state";
+    }
+  }
+
+  async function updateBannerState(enabled) {
+    updateBannerCheckboxUI(enabled, true);
+    try {
+      const r = await fetch(API_URL + '/api/admin/banner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': adminToken
+        },
+        body: JSON.stringify({ enabled })
+      });
+      const res = await r.json();
+      if (!res.ok) throw new Error(res.error || "Failed to update banner");
+      updateBannerCheckboxUI(enabled, false);
+      showNotificationPopup("Banner Update", `Site banner is now ${enabled ? "ENABLED" : "DISABLED"}`);
+      bannerStateLast = enabled;
+    } catch (e) {
+      $bannerToggleStatus.innerText = "Failed to update";
+    }
+  }
+
+  $bannerToggleCheckbox.addEventListener('change', function() {
+    updateBannerState(this.checked);
+  });
+
+  // Poll banner state every 15 seconds
+  function pollBannerState() {
+    fetchBannerState();
+    bannerPollTimer = setTimeout(pollBannerState, 15000);
+  }
+
+  // Dark mode toggle
   const darkToggle = document.getElementById('darkToggle');
   const sunIcon = document.getElementById('sunIcon');
   const moonIcon = document.getElementById('moonIcon');
@@ -692,6 +753,7 @@
     document.getElementById('errorMsg').innerText = '';
     document.getElementById('logoutBtn').style.display = 'none';
     document.getElementById('logoutBtn2').style.display = 'none';
+    if (bannerPollTimer) clearTimeout(bannerPollTimer);
   }
   function showAdmin() {
     document.getElementById('loginSection').style.display = 'none';
@@ -704,6 +766,8 @@
     loadPendingUsers();
     loadUsers();
     loadSiteHistory();
+    fetchBannerState();
+    pollBannerState();
   }
   document.getElementById('adminLoginBtn').onclick = async () => {
     const username = document.getElementById('adminUsername').value.trim();
@@ -730,12 +794,9 @@
     showLogin();
   };
 
-  // --- Store previous siteHistory to detect updates ---
+  // Notification history diff logic
   let prevSiteHistory = [];
-
-  // --- Helper to diff site history entries ---
   function diffSiteHistory(oldList, newList) {
-    // Both should be arrays of {timestamp, user, action, targetName, details...}
     const oldKeys = new Set(oldList.map(e => e.timestamp + (e.action || "") + (e.targetName || "")));
     return newList.filter(e => !oldKeys.has(e.timestamp + (e.action || "") + (e.targetName || "")));
   }
@@ -882,18 +943,14 @@
         prevSiteHistory = [];
         return;
       }
-
-      // --- Notification logic ---
+      // Notification logic
       if (showNotif && Array.isArray(prevSiteHistory) && prevSiteHistory.length > 0) {
-        // Find new entries only
         const newEntries = diffSiteHistory(prevSiteHistory, res.entries);
         if (newEntries.length > 0) {
-          // For each new entry, show a notification
           for (const entry of newEntries) {
             let subText = "";
             let mainText = "New Update";
             if (entry.action && entry.targetName) {
-              // Compose subtext
               let detailsBy = "";
               if (entry.details && entry.details.user) {
                 detailsBy = entry.details.user;
@@ -901,7 +958,6 @@
                 detailsBy = entry.user;
               }
               if (entry.action.includes("job")) {
-                // Show what was changed
                 if (entry.action === "updated job" && entry.details && entry.details.changes) {
                   const fields = Object.keys(entry.details.changes).map(f => {
                     switch(f){
@@ -926,7 +982,6 @@
                   subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
                 }
               } else if (entry.action.includes("user")) {
-                // User actions
                 subText = `User "${entry.targetName}" ${entry.action} by ${detailsBy}`;
               } else {
                 subText = `${entry.action} (${entry.targetName}) by ${detailsBy}`;
