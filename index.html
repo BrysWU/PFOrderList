@@ -772,12 +772,49 @@ body.dark .tooltip[data-tooltip]:hover:after, body.dark .tooltip[data-tooltip]:f
 body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:focus:before {
   border-bottom: 6px solid #34345c;
 }
+    /* Add styles for search bar */
+.joblist-header-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  margin-bottom: 0.7em;
+}
+#customerSearchBar {
+  padding: 0.55em 1.1em;
+  font-size: 1.01rem;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  width: 230px;
+  outline: none;
+  transition: border var(--transition), background var(--transition), color var(--transition);
+  background: #fff;
+  color: #222;
+}
+body.dark #customerSearchBar {
+  background: var(--dark-secondary);
+  border: 1.5px solid var(--dark-border);
+  color: var(--dark-text);
+}
+#customerSearchBar:focus {
+  border: 1.5px solid var(--primary);
+}
+@media (max-width: 700px) {
+  #customerSearchBar {
+    width: 100%;
+    font-size: 0.98rem;
+  }
+  .joblist-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4em;
+  }
+}
   </style>
 </head>
 <body>
   <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
-    <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
+    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2m0 16v2m11-9h-2M3 12H1m16-7l-1.5 1.5M5.5 19.5L4 21m14-2l-1.5-1.5M5.5 4.5L4 3"/></g></svg>
+    <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/><g></g></svg>
     <span id="darkToggleText">Dark Mode</span>
   </button>
   <div id="authStatusBar" class="auth-status-bar">
@@ -864,7 +901,11 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
         <button type="button" class="button" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
       </div>
     </form>
-    <h2>Job List</h2>
+    <!-- Job List header row with search -->
+    <div class="joblist-header-row">
+      <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="off" />
+      <h2 style="margin:0;">Job List</h2>
+    </div>
     <div class="table-wrapper">
       <table id="jobTable">
         <thead>
@@ -919,6 +960,10 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
   const $historyModal = document.getElementById('historyModal');
   const $historyModalClose = document.getElementById('historyModalClose');
   const $historyContent = document.getElementById('historyContent');
+
+  // --- Search Bar Element ---
+  const $customerSearchBar = document.getElementById('customerSearchBar');
+  let customerSearchFilter = ""; // Current live filter
 
   function showBackendLoader(show) {
     if (show) {
@@ -1183,57 +1228,66 @@ body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:
       return date.toLocaleString();
     } catch { return ts; }
   }
+  // --- Live customer search integration ---
+  // Listen for input events and filter jobs live as user types
+  $customerSearchBar.addEventListener('input', function() {
+    customerSearchFilter = $customerSearchBar.value.trim().toLowerCase();
+    renderJobs();
+  });
+  // --- Update renderJobs to use customerSearchFilter ---
   function renderJobs() {
-    const tbody = document.getElementById('jobTable').querySelector('tbody');
+    const tbody = document.querySelector('#jobTable tbody');
     tbody.innerHTML = '';
-    if (jobs.length === 0) {
-      const tr = document.createElement('tr');
-      tr.className = 'empty-row';
+    // Filter jobs if search filter is active
+    let filteredJobs = jobs;
+    if (customerSearchFilter) {
+      filteredJobs = jobs.filter(job => 
+        String(job.customerName || '').toLowerCase().includes(customerSearchFilter)
+      );
+    }
+    if (filteredJobs.length === 0) {
+      const row = document.createElement('tr');
+      row.className = "empty-row";
       const td = document.createElement('td');
       td.colSpan = 8;
-      td.textContent = "No jobs yet. Please add a job above.";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
+      td.innerText = "No jobs found.";
+      row.appendChild(td);
+      tbody.appendChild(row);
       return;
     }
-    jobs.forEach((job, idx) => {
+    for (const job of filteredJobs) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="tooltip" data-tooltip="Customer Name">${escapeHTML(job.customerName)}</td>
-        <td class="tooltip" data-tooltip="Job Description">${escapeHTML(job.jobDescription)}</td>
-        <td class="tooltip" data-tooltip="Job Location">${escapeHTML(job.jobLocation)}</td>
-        <td class="tooltip" data-tooltip="Delivery Date">${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
-        <td class="tooltip" data-tooltip="Proposed Scheduled Date">${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
-        <td class="tooltip" data-tooltip="Scheduled Date">${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
-        <td class="tooltip" data-tooltip="Notes (if any)">
-          <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
-          <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
-        </td>
+        <td>${job.customerName ? escapeHTML(job.customerName) : ''}</td>
+        <td>${job.jobDescription ? escapeHTML(job.jobDescription) : ''}</td>
+        <td>${job.jobLocation ? escapeHTML(job.jobLocation) : ''}</td>
+        <td>${job.deliveryDate ? escapeHTML(job.deliveryDate) : ''}</td>
+        <td>${job.proposedScheduledDate ? escapeHTML(job.proposedScheduledDate) : ''}</td>
+        <td>${job.scheduledDate ? escapeHTML(job.scheduledDate) : ''}</td>
+        <td>${job.notes ? escapeHTML(job.notes) : ''}</td>
         <td>
-          <button class="edit-btn action-btn tooltip" title="Edit" data-tooltip="Edit this job" onclick="editJob('${job.id || ""}')">Edit</button>
-          <button class="action-btn tooltip" style="background:#f3b700;color:#222;" title="View History" data-tooltip="View job history" onclick="showJobHistory('${job.id || ""}')">History</button>
-          <button class="action-btn tooltip" title="Delete" data-tooltip="Delete this job" onclick="deleteJob(${idx})">Delete</button>
+          <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job._id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="action-btn button danger" title="Delete Job" onclick="deleteJob('${job._id}')"><i class="fa-solid fa-trash"></i></button>
+          <button class="action-btn" title="View History" onclick="showHistory('${job._id}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
         </td>
       `;
       tbody.appendChild(tr);
-    });
-    Array.from(tbody.children).forEach((row, i) => {
-      row.style.opacity = 0;
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
-        row.style.opacity = 1;
-      }, 80 * i);
-    });
+    }
   }
+
+  // --- Helper function for safe HTML output (prevents XSS) ---
   function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, function (m) {
+    return String(str).replace(/[&<>"'`=\/]/g, function (s) {
       return ({
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#39;'
-      })[m];
+        "'": '&#39;',
+        '`': '&#96;',
+        '=': '&#61;',
+        '/': '&#47;'
+      })[s];
     });
   }
   window.editJob = function(id) {
