@@ -1247,666 +1247,32 @@ body.dark #notificationPopup .notif-sub {
       </div>
     </div>
   </div>
+```html
 <script>
-  const API_URL = 'https://pfback-dcuc.onrender.com';
+const API_URL = 'https://pfback-dcuc.onrender.com';
 
-  let auth = { token: null, username: null };
-  let jobs = [];
-  let editingJobId = null;
-  let liveUpdateTimer = null;
-  let lastJobsHash = null;
-  const $authSection    = document.getElementById('authSection');
-  const $loginTitle     = document.getElementById('loginTitle');
-  const $signupSection  = document.getElementById('signupSection');
-  const $mainApp        = document.getElementById('mainApp');
-  const $authStatusBar  = document.getElementById('authStatusBar');
-  const $authWelcome    = document.getElementById('authWelcome');
-  const $logoutBtn      = document.getElementById('logoutBtn');
-  const $submitBtn      = document.getElementById('submitBtn');
-  const $cancelEditBtn  = document.getElementById('cancelEditBtn');
-  const $backendStatusBar = document.getElementById('backendStatusBar');
-  const $backendStatusMsg = document.getElementById('backendStatusMsg');
-  const $backendLoader = document.getElementById('backendLoader');
+let auth = { token: null, username: null };
+let jobs = [];
+let editingJobId = null;
+let liveUpdateTimer = null;
+let lastJobsHash = null;
+const $authSection    = document.getElementById('authSection');
+const $loginTitle     = document.getElementById('loginTitle');
+const $signupSection  = document.getElementById('signupSection');
+const $mainApp        = document.getElementById('mainApp');
+const $authStatusBar  = document.getElementById('authStatusBar');
+const $authWelcome    = document.getElementById('authWelcome');
+const $logoutBtn      = document.getElementById('logoutBtn');
+const $submitBtn      = document.getElementById('submitBtn');
+const $cancelEditBtn  = document.getElementById('cancelEditBtn');
+const $backendStatusBar = document.getElementById('backendStatusBar');
+const $backendStatusMsg = document.getElementById('backendStatusMsg');
+const $backendLoader = document.getElementById('backendLoader');
 
-  // --- Modal Elements ---
-  const $historyModal = document.getElementById('historyModal');
-  const $historyModalClose = document.getElementById('historyModalClose');
-  const $historyContent = document.getElementById('historyContent');
+const $historyModal = document.getElementById('historyModal');
+const $historyModalClose = document.getElementById('historyModalClose');
+const $historyContent = document.getElementById('historyContent');
 
-  // --- Search Bar Element ---
-  const $customerSearchBar = document.getElementById('customerSearchBar');
-  let customerSearchFilter = ""; // Current live filter
-
-  function showBackendLoader(show) {
-    if (show) {
-      $backendLoader.style.display = "inline-grid";
-    } else {
-      $backendLoader.style.display = "none";
-    }
-  }
-
-  function showLogin() {
-    $loginTitle.style.display = 'block';
-    $authSection.style.display = 'block';
-    $signupSection.style.display = 'none';
-    $mainApp.style.display = 'none';
-    $authStatusBar.style.display = 'none';
-    document.getElementById('authTitle').innerText = 'Login';
-    document.getElementById('authError').innerText = '';
-    document.getElementById('authUsername').value = '';
-    document.getElementById('authPassword').value = '';
-    stopLiveUpdates();
-  }
-  function showSignup() {
-    $signupSection.style.display = 'block';
-    $authSection.style.display = 'none';
-    $mainApp.style.display = 'none';
-    $authStatusBar.style.display = 'none';
-    document.getElementById('signupError').innerText = '';
-    document.getElementById('signupUsername').value = '';
-    document.getElementById('signupPassword').value = '';
-    stopLiveUpdates();
-  }
-  function showMain() {
-    $loginTitle.style.display = 'none';
-    $authSection.style.display = 'none';
-    $signupSection.style.display = 'none';
-    $mainApp.style.display = '';
-    $authStatusBar.style.display = 'flow';
-    $authWelcome.innerText = `Logged in as ${auth.username}`;
-    startLiveUpdates();
-  }
-  function doLogout() {
-    localStorage.removeItem('auth');
-    auth = {token:null, username:null};
-    showLogin();
-    clearForm();
-    jobs = [];
-    renderJobs();
-    stopLiveUpdates();
-  }
-  document.getElementById('loginBtn').onclick = async () => {
-    const username = document.getElementById('authUsername').value;
-    const password = document.getElementById('authPassword').value;
-    document.getElementById('authError').innerText = '';
-    showBackendLoader(true);
-    try {
-      const r = await fetch(API_URL+'/api/login', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, password})
-      });
-      const res = await r.json();
-      if (res.error && res.error === "Account pending approval") {
-        document.getElementById('authError').innerText = "Account pending admin approval. Please wait.";
-        showBackendLoader(false);
-        return;
-      }
-      if (!res.ok) throw new Error(res.error || "Login failed");
-      auth.token = res.token;
-      auth.username = res.username;
-      localStorage.setItem('auth', JSON.stringify(auth));
-      await loadJobs();
-      showMain();
-    } catch(e) {
-      document.getElementById('authError').innerText = e.message;
-    }
-    showBackendLoader(false);
-  };
-  document.getElementById('switchToSignupBtn').onclick = showSignup;
-  document.getElementById('switchToLoginBtn').onclick = showLogin;
-  document.getElementById('signupBtn').onclick = async () => {
-    const username = document.getElementById('signupUsername').value;
-    const password = document.getElementById('signupPassword').value;
-    document.getElementById('signupError').innerText = '';
-    showBackendLoader(true);
-    try {
-      const r = await fetch(API_URL+'/api/signup', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, password})
-      });
-      const res = await r.json();
-      if (res.pendingApproval) {
-        document.getElementById('signupError').style.color = "#2563eb";
-        document.getElementById('signupError').innerText = "Request submitted, waiting for admin approval.";
-        return;
-      }
-      if (!res.ok) throw new Error(res.error || "Signup failed");
-      showLogin();
-      document.getElementById('authUsername').value = username;
-      document.getElementById('authPassword').value = '';
-    } catch(e) {
-      document.getElementById('signupError').innerText = e.message;
-    }
-    showBackendLoader(false);
-  };
-  $logoutBtn.onclick = doLogout;
-
-  function getJobsHash(jobsArr) {
-    return JSON.stringify(jobsArr.map(j => [
-      j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.notes, j.addedBy, j.status, j.amount
-    ]));
-  }
-
-  async function loadJobs({ silent = false } = {}) {
-    if (!auth.token) return;
-    if (!silent) showBackendLoader(true);
-    try {
-      const r = await fetch(API_URL+'/api/jobs', {
-        method:'GET',
-        headers: {'Authorization': auth.token}
-      });
-      if (r.status === 401) {
-        doLogout();
-        alert("Session expired or logged out. Please log in again.");
-        showBackendLoader(false);
-        return;
-      }
-      const res = await r.json();
-      jobs = res.jobs || [];
-      renderJobs();
-      lastJobsHash = getJobsHash(jobs);
-    } catch (e) {
-      jobs = [];
-      renderJobs();
-    }
-    showBackendLoader(false);
-  }
-
-  function startLiveUpdates() {
-    stopLiveUpdates();
-    liveUpdateTimer = setInterval(async () => {
-      if (!auth.token) {
-        stopLiveUpdates();
-        return;
-      }
-      try {
-        const r = await fetch(API_URL+'/api/jobs', {
-          method: 'GET',
-          headers: {'Authorization': auth.token}
-        });
-        if (r.status === 401) {
-          doLogout();
-          alert("Session expired or logged out. Please log in again.");
-          stopLiveUpdates();
-          return;
-        }
-        const res = await r.json();
-        if (Array.isArray(res.jobs)) {
-          const newHash = getJobsHash(res.jobs);
-          if (newHash !== lastJobsHash) {
-            jobs = res.jobs;
-            lastJobsHash = newHash;
-            renderJobs();
-          }
-        }
-      } catch (e) {}
-    }, 5000);
-  }
-  function stopLiveUpdates() {
-    if (liveUpdateTimer) clearInterval(liveUpdateTimer);
-    liveUpdateTimer = null;
-  }
-
-  async function addJob(job) {
-    if (!auth.token) return;
-    showBackendLoader(true);
-    const res = await fetch(API_URL+'/api/jobs', {
-      method:'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': auth.token},
-      body: JSON.stringify(job)
-    });
-    const data = await res.json();
-    showBackendLoader(false);
-    if (data.ok) {
-      await loadJobs({silent:true});
-    } else {
-      alert(data.error || "Failed to add job.");
-    }
-  }
-  async function updateJob(jobId, job) {
-    if (!auth.token) return;
-    showBackendLoader(true);
-    const res = await fetch(API_URL+'/api/jobs/' + jobId, {
-      method:'PUT',
-      headers: {'Content-Type':'application/json', 'Authorization': auth.token},
-      body: JSON.stringify(job)
-    });
-    const data = await res.json();
-    showBackendLoader(false);
-    if (data.ok) {
-      await loadJobs({silent:true});
-    } else {
-      alert(data.error || "Failed to update job.");
-    }
-  }
-  async function deleteJob(idx) {
-    const job = jobs[idx];
-    if (!job || !job.id) return alert("Job not found.");
-    if (!confirm('Delete this job?')) return;
-    showBackendLoader(true);
-    const res = await fetch(API_URL + '/api/jobs/' + job.id, {
-      method: 'DELETE',
-      headers: {'Authorization': auth.token}
-    });
-    const data = await res.json();
-    showBackendLoader(false);
-    if (data.ok) {
-      await loadJobs({silent:true});
-    } else {
-      alert(data.error || "Failed to delete job.");
-    }
-  }
-  function getFormData() {
-    return {
-      customerName: document.getElementById('customerName').value.trim(),
-      jobDescription: document.getElementById('jobDescription').value.trim(),
-      jobLocation: document.getElementById('jobLocation').value.trim(),
-      deliveryDate: document.getElementById('deliveryDate').value,
-      proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
-      scheduledDate: document.getElementById('scheduledDate').value,
-      notes: document.getElementById('notes').value.trim(),
-      status: 'scheduled',
-      amount: 0
-    };
-  }
-  function setFormData(job) {
-    document.getElementById('customerName').value = job.customerName || "";
-    document.getElementById('jobDescription').value = job.jobDescription || "";
-    document.getElementById('jobLocation').value = job.jobLocation || "";
-    document.getElementById('deliveryDate').value = job.deliveryDate || "";
-    document.getElementById('proposedScheduledDate').value = job.proposedScheduledDate || "";
-    document.getElementById('scheduledDate').value = job.scheduledDate || "";
-    document.getElementById('notes').value = job.notes || "";
-  }
-  function clearForm() {
-    document.getElementById('job-form').reset();
-    editingJobId = null;
-    $submitBtn.textContent = "Add Job";
-    $cancelEditBtn.style.display = "none";
-  }
-  function formatDateToMMDDYYYY(dateStr) {
-    if (!dateStr || dateStr.length !== 10) return "";
-    const [year, month, day] = dateStr.split('-');
-    return `${month}-${day}-${year}`;
-  }
-  function displayDateOrText(dateStr, emptyText) {
-    if (!dateStr || dateStr.length !== 10) return `<span style="opacity:.7;font-style:italic;">${emptyText}</span>`;
-    return formatDateToMMDDYYYY(dateStr);
-  }
-  function formatTimestamp(ts) {
-    if (!ts) return "";
-    try {
-      const date = new Date(ts);
-      return date.toLocaleString();
-    } catch { return ts; }
-  }
-
-  // --- Live customer search integration ---
-  // Listen for input events and filter jobs live as user types
-  $customerSearchBar.addEventListener('input', function() {
-    customerSearchFilter = $customerSearchBar.value.trim().toLowerCase();
-    renderJobs();
-  });
-
-  // --- Update renderJobs to use customerSearchFilter ---
-  function renderJobs() {
-    const tbody = document.getElementById('jobTable').querySelector('tbody');
-    tbody.innerHTML = '';
-    // Filter jobs if search filter is active
-    let filteredJobs = jobs;
-    if (customerSearchFilter) {
-      filteredJobs = jobs.filter(job => 
-        String(job.customerName || '').toLowerCase().includes(customerSearchFilter)
-      );
-    }
-    if (filteredJobs.length === 0) {
-      const tr = document.createElement('tr');
-      tr.className = 'empty-row';
-      const td = document.createElement('td');
-      td.colSpan = 8;
-      td.textContent = customerSearchFilter ? "No jobs found." : "No jobs yet. Please add a job above.";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-      return;
-    }
-    filteredJobs.forEach((job, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="tooltip" data-tooltip="Customer Name">${escapeHTML(job.customerName)}</td>
-        <td class="tooltip" data-tooltip="Job Description">${escapeHTML(job.jobDescription)}</td>
-        <td class="tooltip" data-tooltip="Job Location">${escapeHTML(job.jobLocation)}</td>
-        <td class="tooltip" data-tooltip="Delivery Date">${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
-        <td class="tooltip" data-tooltip="Proposed Scheduled Date">${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
-        <td class="tooltip" data-tooltip="Scheduled Date">${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
-        <td class="tooltip" data-tooltip="Notes (if any)">
-          <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
-          <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
-        </td>
-        <td>
-          <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job.id || ""}')"><i class="fa-solid fa-pen"></i></button>
-          <button class="action-btn his-btn" title="View History" onclick="showJobHistory('${job.id || ""}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
-          <button class="action-btn danger-btn" title="Delete Job" onclick="deleteJob(${idx})"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-    Array.from(tbody.children).forEach((row, i) => {
-      row.style.opacity = 0;
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
-        row.style.opacity = 1;
-      }, 80 * i);
-    });
-  }
-  function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, function (m) {
-      return ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[m];
-    });
-  }
-  window.editJob = function(id) {
-    const job = jobs.find(j => j.id === id);
-    if (!job) return alert("Job not found.");
-    setFormData(job);
-    editingJobId = id;
-    $submitBtn.textContent = "Save Changes";
-    $cancelEditBtn.style.display = "";
-    // --- Fix: Unhide the form if minimized ---
-    var mainApp = document.getElementById('mainApp');
-    if (mainApp.classList.contains('minimized')) {
-      mainApp.classList.remove('minimized');
-    }
-    window.scrollTo({top: 0, behavior: "smooth"});
-  }
-  window.showJobHistory = async function(id) {
-    if (!id) return;
-    $historyModal.classList.add('active');
-    $historyContent.innerHTML = `<div style="text-align:center;color:#888;">Loading...</div>`;
-    try {
-      const res = await fetch(API_URL + "/api/jobs/" + id + "/history", {
-        method: "GET",
-        headers: {'Authorization': auth.token}
-      });
-      if (!res.ok) throw new Error("Failed to fetch history");
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error || "Failed to get history");
-      if (!Array.isArray(data.history) || data.history.length === 0) {
-        $historyContent.innerHTML = `<div style="text-align:center;color:#888;">No change history for this job.</div>`;
-        return;
-      }
-      $historyContent.innerHTML = `<ul class="history-list"></ul>`;
-      const $list = $historyContent.querySelector('.history-list');
-      data.history.slice().reverse().forEach(entry => {
-        const $li = document.createElement('li');
-        $li.className = "history-entry";
-        $li.innerHTML = `
-          <div class="history-meta">
-            ${escapeHTML(entry.user || "unknown")} &ndash; ${formatTimestamp(entry.timestamp)}
-          </div>
-          <div class="history-action">
-            ${entry.action === "created" ? "<b>Created job</b>" : "<b>Updated</b>"}
-          </div>
-        `;
-        if (entry.action === "created") {
-          $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Initial values:</div>`;
-          if (entry.changes && typeof entry.changes === "object") {
-            $li.innerHTML += `<ul class="changes-list">${
-              Object.entries(entry.changes).map(([k,v]) =>
-                `<li><b>${escapeHTML(k)}:</b> ${escapeHTML(String(v))}</li>`
-              ).join("")
-            }</ul>`;
-          }
-        } else if (entry.action === "updated") {
-          if (entry.changes && typeof entry.changes === "object" && Object.keys(entry.changes).length) {
-            $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Changed fields:</div>
-              <ul class="changes-list">${
-                Object.entries(entry.changes).map(([k,v]) =>
-                  `<li><b>${escapeHTML(k)}:</b> <i>${escapeHTML(String(v.old))}</i> &rarr; <b>${escapeHTML(String(v.new))}</b></li>`
-                ).join("")
-              }</ul>`;
-          }
-        }
-        $list.appendChild($li);
-      });
-    } catch (e) {
-      $historyContent.innerHTML = `<div style="text-align:center;color:#e03f3f;">${escapeHTML(e.message || "Failed to load history")}</div>`;
-    }
-  };
-  $historyModalClose.onclick = function() {
-    $historyModal.classList.remove('active');
-    $historyContent.innerHTML = '';
-  };
-  $historyModal.onclick = function(e) {
-    if (e.target === $historyModal) {
-      $historyModal.classList.remove('active');
-      $historyContent.innerHTML = '';
-    }
-  };
-
-  document.getElementById('job-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const job = getFormData();
-    if (!job.customerName || !job.jobDescription) {
-      alert('Please fill in all required fields: customer name and job description.');
-      return;
-    }
-    if (editingJobId) {
-      await updateJob(editingJobId, job);
-    } else {
-      await addJob(job);
-    }
-    clearForm();
-    let main = document.getElementById('mainApp');
-    main.classList.remove('form-added');
-    setTimeout(() => main.classList.add('form-added'), 10);
-    setTimeout(() => main.classList.remove('form-added'), 900);
-  });
-  document.getElementById('clearBtn').addEventListener('click', function() {
-    clearForm();
-  });
-  $cancelEditBtn.addEventListener('click', function() {
-    clearForm();
-  });
-  document.getElementById('exportBtn').addEventListener('click', function() {
-    if(!jobs.length) {
-      alert("No jobs to export.");
-      return;
-    }
-    const data = JSON.stringify(jobs, null, 2);
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'jobs-export.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-  document.getElementById('importFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
-      try {
-        const imported = JSON.parse(ev.target.result);
-        if (!Array.isArray(imported)) throw new Error("Invalid file");
-        if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
-        for (const job of imported) {
-          await addJob(job);
-        }
-        await loadJobs({silent:true});
-        alert('Jobs imported!');
-      } catch (err) {
-        alert('Failed to import: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  });
-
-  let backendReady = false;
-  let backendAttempts = 0;
-  function checkBackend() {
-    backendAttempts++;
-    $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking backend status`;
-    showBackendLoader(true);
-    fetch(API_URL + "/", { method: "GET", cache: "no-store" })
-      .then(async r => {
-        if (r.ok) {
-          backendReady = true;
-          if (!sessionStorage.getItem('backendJustReloaded')) {
-            sessionStorage.setItem('backendJustReloaded', '1');
-            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking if Backend is ready! Reloading page . . .`;
-            showBackendLoader(true);
-            setTimeout(() => {
-              location.reload();
-            }, 900);
-          } else {
-            sessionStorage.removeItem('backendJustReloaded');
-            $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is ready!`;
-            showBackendLoader(false);
-            setTimeout(() => {
-              $backendStatusBar.style.display = "none";
-              startApp();
-            }, 700);
-          }
-        } else throw new Error();
-      })
-      .catch(err => {
-        backendReady = false;
-        $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is asleep or offline. Retrying in a few seconds . . .`;
-        showBackendLoader(true);
-        setTimeout(() => checkBackend(), 5000);
-      });
-  }
-  function startApp() {
-    const saved = localStorage.getItem('auth');
-    if (saved) {
-      auth = JSON.parse(saved);
-      showMain();
-      loadJobs();
-    } else {
-      showLogin();
-    }
-  }
-  const darkToggle = document.getElementById('darkToggle');
-  const sunIcon = document.getElementById('sunIcon');
-  const moonIcon = document.getElementById('moonIcon');
-  const darkToggleText = document.getElementById('darkToggleText');
-  function setDarkMode(enabled) {
-    if (enabled) {
-      document.body.classList.add('dark');
-      darkToggle.classList.add('active');
-      sunIcon.style.display = 'none';
-      moonIcon.style.display = 'inline';
-      darkToggleText.innerText = "Light Mode";
-      localStorage.setItem('darkMode', '1');
-    } else {
-      document.body.classList.remove('dark');
-      darkToggle.classList.remove('active');
-      sunIcon.style.display = 'inline';
-      moonIcon.style.display = 'none';
-      darkToggleText.innerText = "Dark Mode";
-      localStorage.removeItem('darkMode');
-    }
-  }
-  darkToggle.onclick = function() {
-    setDarkMode(!document.body.classList.contains('dark'));
-  };
-  if (localStorage.getItem('darkMode')) setDarkMode(true);
-
-  window.onload = () => {
-    $backendStatusBar.style.display = "flex";
-    $authSection.style.display = "none";
-    $signupSection.style.display = "none";
-    $mainApp.style.display = "none";
-    $authStatusBar.style.display = "none";
-    showBackendLoader(true);
-    checkBackend();
-  };
-  window.deleteJob = deleteJob;
-
-  // Minimize/hide/show job form logic
-  document.addEventListener('DOMContentLoaded', function() {
-    // Icon toggle
-    const minimizeBtn = document.getElementById('minimizeJobFormBtn');
-    const mainApp = document.getElementById('mainApp');
-    if (minimizeBtn && mainApp) {
-      minimizeBtn.addEventListener('click', function() {
-        mainApp.classList.toggle('minimized');
-      });
-    }
-    // Date pickers etc.
-    ['deliveryDate','proposedScheduledDate','scheduledDate'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('focus', function() { this.showPicker && this.showPicker(); });
-        el.addEventListener('click', function() { this.showPicker && this.showPicker(); });
-      }
-    });
-  });
-
-  // --- Banner warning feature ---
-  const $siteWarningBanner = document.getElementById('siteWarningBanner');
-  let bannerState = false;
-  let bannerSSE = null;
-
-  function applyBanner(state) {
-    bannerState = !!state;
-    if (bannerState) {
-      $siteWarningBanner.style.display = 'block';
-      document.body.classList.add('banner-active');
-    } else {
-      $siteWarningBanner.style.display = 'none';
-      document.body.classList.remove('banner-active');
-    }
-  }
-
-  // Prefer Server-Sent-Events (SSE) for live banner state
-  function setupBannerLiveUpdates() {
-    if (bannerSSE) {
-      bannerSSE.close();
-      bannerSSE = null;
-    }
-    try {
-      bannerSSE = new EventSource(API_URL + '/api/banner/stream');
-      bannerSSE.onmessage = function(evt) {
-        try {
-          const data = JSON.parse(evt.data);
-          applyBanner(data.enabled);
-        } catch {}
-      };
-      bannerSSE.onerror = function() {
-        // fallback to polling if SSE fails
-        setTimeout(pollBannerState, 10000);
-        bannerSSE.close();
-        bannerSSE = null;
-      };
-    } catch {
-      // fallback to polling
-      pollBannerState();
-    }
-  }
-  function pollBannerState() {
-    fetch(API_URL + '/api/banner')
-      .then(r => r.json())
-      .then(res => {
-        if (typeof res.enabled === "boolean") {
-          applyBanner(res.enabled);
-        }
-      })
-      .catch(()=>{});
-    setTimeout(pollBannerState, 15000);
-  }
-  // Start live updates as soon as possible
-  setupBannerLiveUpdates();
-const NOTIF_API_URL = API_URL;
 const $notifPopup = document.getElementById('notificationPopup');
 const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
 let notifTimer = null;
@@ -1932,6 +1298,7 @@ window.hideNotificationPopup = hideNotificationPopup;
 
 let lastHistoryTimestamp = null;
 let siteHistoryPollingTimer = null;
+let siteHistoryInitialized = false;
 
 function extractJobEventNotification(entry) {
   if (!entry || !entry.action || !entry.targetName) return null;
@@ -1969,38 +1336,617 @@ function extractJobEventNotification(entry) {
 
 async function pollSiteHistoryForJobEvents() {
   try {
-    const r = await fetch(NOTIF_API_URL+'/api/job-notifications', {
+    const r = await fetch(API_URL+'/api/job-notifications', {
       headers: auth.token ? { 'Authorization': auth.token } : {}
     });
     const res = await r.json();
     if (!res.ok || !Array.isArray(res.entries)) return;
     let entries = res.entries;
-    if (lastHistoryTimestamp) {
-      entries = entries.filter(e => e.timestamp > lastHistoryTimestamp);
-    }
-    for (const entry of entries.reverse()) {
-      const notif = extractJobEventNotification(entry);
-      if (notif) showNotificationPopup(notif.mainText, notif.subText);
-    }
-    if (res.entries.length > 0) {
-      lastHistoryTimestamp = res.entries[0].timestamp;
+    if (!siteHistoryInitialized) {
+      if (entries.length > 0) {
+        lastHistoryTimestamp = entries[0].timestamp;
+      }
+      siteHistoryInitialized = true;
+    } else {
+      if (lastHistoryTimestamp) {
+        entries = entries.filter(e => e.timestamp > lastHistoryTimestamp);
+      }
+      for (const entry of entries.reverse()) {
+        const notif = extractJobEventNotification(entry);
+        if (notif) showNotificationPopup(notif.mainText, notif.subText);
+      }
+      if (res.entries.length > 0) {
+        lastHistoryTimestamp = res.entries[0].timestamp;
+      }
     }
   } catch (e) {}
   siteHistoryPollingTimer = setTimeout(pollSiteHistoryForJobEvents, 7000);
 }
 
-// Call this in showMain() after login, and clear on logout
-const _origShowMain = showMain;
-showMain = function() {
-  _origShowMain();
-  pollSiteHistoryForJobEvents();
-};
-const _origDoLogout = doLogout;
-doLogout = function() {
-  _origDoLogout();
+function showBackendLoader(show) {
+  if (show) {
+    $backendLoader.style.display = "inline-grid";
+  } else {
+    $backendLoader.style.display = "none";
+  }
+}
+
+function showLogin() {
+  $loginTitle.style.display = 'block';
+  $authSection.style.display = 'block';
+  $signupSection.style.display = 'none';
+  $mainApp.style.display = 'none';
+  $authStatusBar.style.display = 'none';
+  document.getElementById('authTitle').innerText = 'Login';
+  document.getElementById('authError').innerText = '';
+  document.getElementById('authUsername').value = '';
+  document.getElementById('authPassword').value = '';
+  stopLiveUpdates();
   if (siteHistoryPollingTimer) clearTimeout(siteHistoryPollingTimer);
   lastHistoryTimestamp = null;
+  siteHistoryInitialized = false;
+}
+function showSignup() {
+  $signupSection.style.display = 'block';
+  $authSection.style.display = 'none';
+  $mainApp.style.display = 'none';
+  $authStatusBar.style.display = 'none';
+  document.getElementById('signupError').innerText = '';
+  document.getElementById('signupUsername').value = '';
+  document.getElementById('signupPassword').value = '';
+  stopLiveUpdates();
+  if (siteHistoryPollingTimer) clearTimeout(siteHistoryPollingTimer);
+  lastHistoryTimestamp = null;
+  siteHistoryInitialized = false;
+}
+function showMain() {
+  $loginTitle.style.display = 'none';
+  $authSection.style.display = 'none';
+  $signupSection.style.display = 'none';
+  $mainApp.style.display = '';
+  $authStatusBar.style.display = 'flow';
+  $authWelcome.innerText = `Logged in as ${auth.username}`;
+  startLiveUpdates();
+  if (siteHistoryPollingTimer) clearTimeout(siteHistoryPollingTimer);
+  lastHistoryTimestamp = null;
+  siteHistoryInitialized = false;
+  pollSiteHistoryForJobEvents();
+}
+function doLogout() {
+  localStorage.removeItem('auth');
+  auth = {token:null, username:null};
+  showLogin();
+  clearForm();
+  jobs = [];
+  renderJobs();
+  stopLiveUpdates();
+  if (siteHistoryPollingTimer) clearTimeout(siteHistoryPollingTimer);
+  lastHistoryTimestamp = null;
+  siteHistoryInitialized = false;
+}
+
+document.getElementById('loginBtn').onclick = async () => {
+  const username = document.getElementById('authUsername').value;
+  const password = document.getElementById('authPassword').value;
+  document.getElementById('authError').innerText = '';
+  showBackendLoader(true);
+  try {
+    const r = await fetch(API_URL+'/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const res = await r.json();
+    if (res.error && res.error === "Account pending approval") {
+      document.getElementById('authError').innerText = "Account pending admin approval. Please wait.";
+      showBackendLoader(false);
+      return;
+    }
+    if (!res.ok) throw new Error(res.error || "Login failed");
+    auth.token = res.token;
+    auth.username = res.username;
+    localStorage.setItem('auth', JSON.stringify(auth));
+    await loadJobs();
+    showMain();
+  } catch(e) {
+    document.getElementById('authError').innerText = e.message;
+  }
+  showBackendLoader(false);
 };
+document.getElementById('switchToSignupBtn').onclick = showSignup;
+document.getElementById('switchToLoginBtn').onclick = showLogin;
+document.getElementById('signupBtn').onclick = async () => {
+  const username = document.getElementById('signupUsername').value;
+  const password = document.getElementById('signupPassword').value;
+  document.getElementById('signupError').innerText = '';
+  showBackendLoader(true);
+  try {
+    const r = await fetch(API_URL+'/api/signup', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const res = await r.json();
+    if (res.pendingApproval) {
+      document.getElementById('signupError').style.color = "#2563eb";
+      document.getElementById('signupError').innerText = "Request submitted, waiting for admin approval.";
+      return;
+    }
+    if (!res.ok) throw new Error(res.error || "Signup failed");
+    showLogin();
+    document.getElementById('authUsername').value = username;
+    document.getElementById('authPassword').value = '';
+  } catch(e) {
+    document.getElementById('signupError').innerText = e.message;
+  }
+  showBackendLoader(false);
+};
+$logoutBtn.onclick = doLogout;
+
+function getJobsHash(jobsArr) {
+  return JSON.stringify(jobsArr.map(j => [
+    j.id, j.customerName, j.jobDescription, j.jobLocation, j.deliveryDate, j.proposedScheduledDate, j.scheduledDate, j.notes, j.addedBy, j.status, j.amount
+  ]));
+}
+
+async function loadJobs({ silent = false } = {}) {
+  if (!auth.token) return;
+  if (!silent) showBackendLoader(true);
+  try {
+    const r = await fetch(API_URL+'/api/jobs', {
+      method:'GET',
+      headers: {'Authorization': auth.token}
+    });
+    if (r.status === 401) {
+      doLogout();
+      alert("Session expired or logged out. Please log in again.");
+      showBackendLoader(false);
+      return;
+    }
+    const res = await r.json();
+    jobs = res.jobs || [];
+    renderJobs();
+    lastJobsHash = getJobsHash(jobs);
+  } catch (e) {
+    jobs = [];
+    renderJobs();
+  }
+  showBackendLoader(false);
+}
+
+function startLiveUpdates() {
+  stopLiveUpdates();
+  liveUpdateTimer = setInterval(async () => {
+    if (!auth.token) {
+      stopLiveUpdates();
+      return;
+    }
+    try {
+      const r = await fetch(API_URL+'/api/jobs', {
+        method: 'GET',
+        headers: {'Authorization': auth.token}
+      });
+      if (r.status === 401) {
+        doLogout();
+        alert("Session expired or logged out. Please log in again.");
+        stopLiveUpdates();
+        return;
+      }
+      const res = await r.json();
+      if (Array.isArray(res.jobs)) {
+        const newHash = getJobsHash(res.jobs);
+        if (newHash !== lastJobsHash) {
+          jobs = res.jobs;
+          lastJobsHash = newHash;
+          renderJobs();
+        }
+      }
+    } catch (e) {}
+  }, 5000);
+}
+function stopLiveUpdates() {
+  if (liveUpdateTimer) clearInterval(liveUpdateTimer);
+  liveUpdateTimer = null;
+}
+
+async function addJob(job) {
+  if (!auth.token) return;
+  showBackendLoader(true);
+  const res = await fetch(API_URL+'/api/jobs', {
+    method:'POST',
+    headers: {'Content-Type':'application/json', 'Authorization': auth.token},
+    body: JSON.stringify(job)
+  });
+  const data = await res.json();
+  showBackendLoader(false);
+  if (data.ok) {
+    await loadJobs({silent:true});
+  } else {
+    alert(data.error || "Failed to add job.");
+  }
+}
+async function updateJob(jobId, job) {
+  if (!auth.token) return;
+  showBackendLoader(true);
+  const res = await fetch(API_URL+'/api/jobs/' + jobId, {
+    method:'PUT',
+    headers: {'Content-Type':'application/json', 'Authorization': auth.token},
+    body: JSON.stringify(job)
+  });
+  const data = await res.json();
+  showBackendLoader(false);
+  if (data.ok) {
+    await loadJobs({silent:true});
+  } else {
+    alert(data.error || "Failed to update job.");
+  }
+}
+async function deleteJob(idx) {
+  const job = jobs[idx];
+  if (!job || !job.id) return alert("Job not found.");
+  if (!confirm('Delete this job?')) return;
+  showBackendLoader(true);
+  const res = await fetch(API_URL + '/api/jobs/' + job.id, {
+    method: 'DELETE',
+    headers: {'Authorization': auth.token}
+  });
+  const data = await res.json();
+  showBackendLoader(false);
+  if (data.ok) {
+    await loadJobs({silent:true});
+  } else {
+    alert(data.error || "Failed to delete job.");
+  }
+}
+function getFormData() {
+  return {
+    customerName: document.getElementById('customerName').value.trim(),
+    jobDescription: document.getElementById('jobDescription').value.trim(),
+    jobLocation: document.getElementById('jobLocation').value.trim(),
+    deliveryDate: document.getElementById('deliveryDate').value,
+    proposedScheduledDate: document.getElementById('proposedScheduledDate').value,
+    scheduledDate: document.getElementById('scheduledDate').value,
+    notes: document.getElementById('notes').value.trim(),
+    status: 'scheduled',
+    amount: 0
+  };
+}
+function setFormData(job) {
+  document.getElementById('customerName').value = job.customerName || "";
+  document.getElementById('jobDescription').value = job.jobDescription || "";
+  document.getElementById('jobLocation').value = job.jobLocation || "";
+  document.getElementById('deliveryDate').value = job.deliveryDate || "";
+  document.getElementById('proposedScheduledDate').value = job.proposedScheduledDate || "";
+  document.getElementById('scheduledDate').value = job.scheduledDate || "";
+  document.getElementById('notes').value = job.notes || "";
+}
+function clearForm() {
+  document.getElementById('job-form').reset();
+  editingJobId = null;
+  $submitBtn.textContent = "Add Job";
+  $cancelEditBtn.style.display = "none";
+}
+function formatDateToMMDDYYYY(dateStr) {
+  if (!dateStr || dateStr.length !== 10) return "";
+  const [year, month, day] = dateStr.split('-');
+  return `${month}-${day}-${year}`;
+}
+function displayDateOrText(dateStr, emptyText) {
+  if (!dateStr || dateStr.length !== 10) return `<span style="opacity:.7;font-style:italic;">${emptyText}</span>`;
+  return formatDateToMMDDYYYY(dateStr);
+}
+function formatTimestamp(ts) {
+  if (!ts) return "";
+  try {
+    const date = new Date(ts);
+    return date.toLocaleString();
+  } catch { return ts; }
+}
+
+const $customerSearchBar = document.getElementById('customerSearchBar');
+let customerSearchFilter = "";
+if ($customerSearchBar) {
+  $customerSearchBar.addEventListener('input', function() {
+    customerSearchFilter = $customerSearchBar.value.trim().toLowerCase();
+    renderJobs();
+  });
+}
+
+function renderJobs() {
+  const tbody = document.getElementById('jobTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  let filteredJobs = jobs;
+  if (customerSearchFilter) {
+    filteredJobs = jobs.filter(job =>
+      String(job.customerName || '').toLowerCase().includes(customerSearchFilter)
+    );
+  }
+  if (filteredJobs.length === 0) {
+    const tr = document.createElement('tr');
+    tr.className = 'empty-row';
+    const td = document.createElement('td');
+    td.colSpan = 8;
+    td.textContent = customerSearchFilter ? "No jobs found." : "No jobs yet. Please add a job above.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  filteredJobs.forEach((job, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="tooltip" data-tooltip="Customer Name">${escapeHTML(job.customerName)}</td>
+      <td class="tooltip" data-tooltip="Job Description">${escapeHTML(job.jobDescription)}</td>
+      <td class="tooltip" data-tooltip="Job Location">${escapeHTML(job.jobLocation)}</td>
+      <td class="tooltip" data-tooltip="Delivery Date">${displayDateOrText(job.deliveryDate, "No Delivery Date")}</td>
+      <td class="tooltip" data-tooltip="Proposed Scheduled Date">${displayDateOrText(job.proposedScheduledDate, "No Proposed Date")}</td>
+      <td class="tooltip" data-tooltip="Scheduled Date">${displayDateOrText(job.scheduledDate, "Job not Scheduled")}</td>
+      <td class="tooltip" data-tooltip="Notes (if any)">
+        <span style="white-space: pre-line;">${escapeHTML(job.notes || "")}</span>
+        <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
+      </td>
+      <td>
+        <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job.id || ""}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="action-btn his-btn" title="View History" onclick="showJobHistory('${job.id || ""}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        <button class="action-btn danger-btn" title="Delete Job" onclick="deleteJob(${idx})"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  Array.from(tbody.children).forEach((row, i) => {
+    row.style.opacity = 0;
+    setTimeout(() => {
+      row.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
+      row.style.opacity = 1;
+    }, 80 * i);
+  });
+}
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, function (m) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[m];
+  });
+}
+window.editJob = function(id) {
+  const job = jobs.find(j => j.id === id);
+  if (!job) return alert("Job not found.");
+  setFormData(job);
+  editingJobId = id;
+  $submitBtn.textContent = "Save Changes";
+  $cancelEditBtn.style.display = "";
+  var mainApp = document.getElementById('mainApp');
+  if (mainApp.classList.contains('minimized')) {
+    mainApp.classList.remove('minimized');
+  }
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+window.showJobHistory = async function(id) {
+  if (!id) return;
+  $historyModal.classList.add('active');
+  $historyContent.innerHTML = `<div style="text-align:center;color:#888;">Loading...</div>`;
+  try {
+    const res = await fetch(API_URL + "/api/jobs/" + id + "/history", {
+      method: "GET",
+      headers: {'Authorization': auth.token}
+    });
+    if (!res.ok) throw new Error("Failed to fetch history");
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to get history");
+    if (!Array.isArray(data.history) || data.history.length === 0) {
+      $historyContent.innerHTML = `<div style="text-align:center;color:#888;">No change history for this job.</div>`;
+      return;
+    }
+    $historyContent.innerHTML = `<ul class="history-list"></ul>`;
+    const $list = $historyContent.querySelector('.history-list');
+    data.history.slice().reverse().forEach(entry => {
+      const $li = document.createElement('li');
+      $li.className = "history-entry";
+      $li.innerHTML = `
+        <div class="history-meta">
+          ${escapeHTML(entry.user || "unknown")} &ndash; ${formatTimestamp(entry.timestamp)}
+        </div>
+        <div class="history-action">
+          ${entry.action === "created" ? "<b>Created job</b>" : "<b>Updated</b>"}
+        </div>
+      `;
+      if (entry.action === "created") {
+        $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Initial values:</div>`;
+        if (entry.changes && typeof entry.changes === "object") {
+          $li.innerHTML += `<ul class="changes-list">${
+            Object.entries(entry.changes).map(([k,v]) =>
+              `<li><b>${escapeHTML(k)}:</b> ${escapeHTML(String(v))}</li>`
+            ).join("")
+          }</ul>`;
+        }
+      } else if (entry.action === "updated") {
+        if (entry.changes && typeof entry.changes === "object" && Object.keys(entry.changes).length) {
+          $li.innerHTML += `<div style="margin-bottom:0.2em;font-size:0.97em;">Changed fields:</div>
+            <ul class="changes-list">${
+              Object.entries(entry.changes).map(([k,v]) =>
+                `<li><b>${escapeHTML(k)}:</b> <i>${escapeHTML(String(v.old))}</i> &rarr; <b>${escapeHTML(String(v.new))}</b></li>`
+              ).join("")
+            }</ul>`;
+        }
+      }
+      $list.appendChild($li);
+    });
+  } catch (e) {
+    $historyContent.innerHTML = `<div style="text-align:center;color:#e03f3f;">${escapeHTML(e.message || "Failed to load history")}</div>`;
+  }
+};
+$historyModalClose.onclick = function() {
+  $historyModal.classList.remove('active');
+  $historyContent.innerHTML = '';
+};
+$historyModal.onclick = function(e) {
+  if (e.target === $historyModal) {
+    $historyModal.classList.remove('active');
+    $historyContent.innerHTML = '';
+  }
+};
+
+document.getElementById('job-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const job = getFormData();
+  if (!job.customerName || !job.jobDescription) {
+    alert('Please fill in all required fields: customer name and job description.');
+    return;
+  }
+  if (editingJobId) {
+    await updateJob(editingJobId, job);
+  } else {
+    await addJob(job);
+  }
+  clearForm();
+  let main = document.getElementById('mainApp');
+  main.classList.remove('form-added');
+  setTimeout(() => main.classList.add('form-added'), 10);
+  setTimeout(() => main.classList.remove('form-added'), 900);
+});
+document.getElementById('clearBtn').addEventListener('click', function() {
+  clearForm();
+});
+$cancelEditBtn.addEventListener('click', function() {
+  clearForm();
+});
+document.getElementById('exportBtn').addEventListener('click', function() {
+  if(!jobs.length) {
+    alert("No jobs to export.");
+    return;
+  }
+  const data = JSON.stringify(jobs, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'jobs-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById('importFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error("Invalid file");
+      if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
+      for (const job of imported) {
+        await addJob(job);
+      }
+      await loadJobs({silent:true});
+      alert('Jobs imported!');
+    } catch (err) {
+      alert('Failed to import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+let backendReady = false;
+let backendAttempts = 0;
+function checkBackend() {
+  backendAttempts++;
+  $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking backend status`;
+  showBackendLoader(true);
+  fetch(API_URL + "/", { method: "GET", cache: "no-store" })
+    .then(async r => {
+      if (r.ok) {
+        backendReady = true;
+        if (!sessionStorage.getItem('backendJustReloaded')) {
+          sessionStorage.setItem('backendJustReloaded', '1');
+          $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Checking if Backend is ready! Reloading page . . .`;
+          showBackendLoader(true);
+          setTimeout(() => {
+            location.reload();
+          }, 900);
+        } else {
+          sessionStorage.removeItem('backendJustReloaded');
+          $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is ready!`;
+          showBackendLoader(false);
+          setTimeout(() => {
+            $backendStatusBar.style.display = "none";
+            startApp();
+          }, 700);
+        }
+      } else throw new Error();
+    })
+    .catch(err => {
+      backendReady = false;
+      $backendStatusMsg.innerHTML = `<span class="backend-loader" id="backendLoader"></span> Backend is asleep or offline. Retrying in a few seconds . . .`;
+      showBackendLoader(true);
+      setTimeout(() => checkBackend(), 5000);
+    });
+}
+function startApp() {
+  const saved = localStorage.getItem('auth');
+  if (saved) {
+    auth = JSON.parse(saved);
+    showMain();
+    loadJobs();
+  } else {
+    showLogin();
+  }
+}
+const darkToggle = document.getElementById('darkToggle');
+const sunIcon = document.getElementById('sunIcon');
+const moonIcon = document.getElementById('moonIcon');
+const darkToggleText = document.getElementById('darkToggleText');
+function setDarkMode(enabled) {
+  if (enabled) {
+    document.body.classList.add('dark');
+    darkToggle.classList.add('active');
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'inline';
+    darkToggleText.innerText = "Light Mode";
+    localStorage.setItem('darkMode', '1');
+  } else {
+    document.body.classList.remove('dark');
+    darkToggle.classList.remove('active');
+    sunIcon.style.display = 'inline';
+    moonIcon.style.display = 'none';
+    darkToggleText.innerText = "Dark Mode";
+    localStorage.removeItem('darkMode');
+  }
+}
+darkToggle.onclick = function() {
+  setDarkMode(!document.body.classList.contains('dark'));
+};
+if (localStorage.getItem('darkMode')) setDarkMode(true);
+
+window.onload = () => {
+  $backendStatusBar.style.display = "flex";
+  $authSection.style.display = "none";
+  $signupSection.style.display = "none";
+  $mainApp.style.display = "none";
+  $authStatusBar.style.display = "none";
+  showBackendLoader(true);
+  checkBackend();
+};
+window.deleteJob = deleteJob;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const minimizeBtn = document.getElementById('minimizeJobFormBtn');
+  const mainApp = document.getElementById('mainApp');
+  if (minimizeBtn && mainApp) {
+    minimizeBtn.addEventListener('click', function() {
+      mainApp.classList.toggle('minimized');
+    });
+  }
+  ['deliveryDate','proposedScheduledDate','scheduledDate'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('focus', function() { this.showPicker && this.showPicker(); });
+      el.addEventListener('click', function() { this.showPicker && this.showPicker(); });
+    }
+  });
+});
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
