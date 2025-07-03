@@ -472,9 +472,99 @@
       color: #ffd978;
       box-shadow: 0 2px 8px #f9b70029;
     }
+  /* Notification popup styles */
+    #notificationPopup {
+      position: fixed;
+      top: 85px;
+      left: 0;
+      z-index: 1001;
+      min-width: 260px;
+      max-width: 98vw;
+      background: #fff;
+      color: #222;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px #0002, 0 2px 8px #2563eb1a;
+      padding: 1.1em 1.6em 1em 2.1em;
+      margin-left: -500px;
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2em;
+      pointer-events: none;
+      border-left: 7px solid var(--primary);
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 1.05em;
+      transition:
+        margin-left 0.5s cubic-bezier(0.4,0,0.2,1),
+        opacity 0.3s cubic-bezier(0.4,0,0.2,1),
+        background 0.3s, color 0.3s;
+      animation: none;
+    }
+    #notificationPopup.visible {
+      margin-left: 30px;
+      opacity: 1;
+      pointer-events: auto;
+      animation: slideInLeft 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    #notificationPopup .notif-title {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.13em;
+      margin-bottom: 0.1em;
+    }
+    #notificationPopup .notif-sub {
+      color: #444;
+      font-size: 0.97em;
+      margin-bottom: 0.02em;
+    }
+    #notificationPopup .notif-close {
+      position: absolute;
+      top: 0.5em;
+      right: 0.6em;
+      background: none;
+      color: #888;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: color 0.16s, opacity 0.18s;
+      z-index: 2;
+      pointer-events: auto;
+    }
+    #notificationPopup .notif-close:hover { color: #e03f3f; opacity: 1; }
+    body.dark #notificationPopup {
+      background: var(--dark-card);
+      color: #d5e4ff;
+      border-left: 7px solid #99b7ff;
+      box-shadow: 0 6px 40px #0005, 0 2px 8px #2563eb18;
+    }
+    body.dark #notificationPopup .notif-title {
+      color: #99b7ff;
+    }
+    body.dark #notificationPopup .notif-sub {
+      color: #bcbcf7;
+    }
+    @keyframes slideInLeft {
+      from { margin-left: -500px; opacity: 0;}
+      to { margin-left: 30px; opacity: 1;}
+    }
+    @media (max-width: 600px) {
+      #notificationPopup {
+        font-size: 0.98em;
+        padding: 0.9em 1.1em 0.85em 1.4em;
+        margin-left: -100vw;
+      }
+      #notificationPopup.visible { margin-left: 2vw;}
+    }
   </style>
 </head>
 <body>
+  <!-- Notification Popup -->
+  <div id="notificationPopup" style="display:none;">
+    <button class="notif-close" title="Close notification" onclick="hideNotificationPopup()">&times;</button>
+    <div class="notif-title">New Update</div>
+    <div class="notif-sub"></div>
+  </div>
   <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
     <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
     <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
@@ -542,7 +632,31 @@
   let adminToken = null;
   let adminUsername = null;
 
-  // Dark mode toggle
+  // --- Notification popup ---
+  const $notifPopup = document.getElementById('notificationPopup');
+  const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
+  let notifTimer = null;
+  function hideNotificationPopup() {
+    if ($notifPopup) {
+      $notifPopup.classList.remove('visible');
+      setTimeout(() => { $notifPopup.style.display = "none"; }, 500);
+      if (notifTimer) clearTimeout(notifTimer);
+    }
+  }
+  function showNotificationPopup(mainText, subText) {
+    if (!$notifPopup) return;
+    $notifPopup.querySelector('.notif-title').innerText = mainText || "New Update";
+    $notifSub.innerText = subText || "";
+    $notifPopup.style.display = "flex";
+    setTimeout(() => {
+      $notifPopup.classList.add('visible');
+    }, 40);
+    if (notifTimer) clearTimeout(notifTimer);
+    notifTimer = setTimeout(hideNotificationPopup, 7000);
+  }
+  window.hideNotificationPopup = hideNotificationPopup;
+
+  // --- Dark mode toggle ---
   const darkToggle = document.getElementById('darkToggle');
   const sunIcon = document.getElementById('sunIcon');
   const moonIcon = document.getElementById('moonIcon');
@@ -616,6 +730,16 @@
     showLogin();
   };
 
+  // --- Store previous siteHistory to detect updates ---
+  let prevSiteHistory = [];
+
+  // --- Helper to diff site history entries ---
+  function diffSiteHistory(oldList, newList) {
+    // Both should be arrays of {timestamp, user, action, targetName, details...}
+    const oldKeys = new Set(oldList.map(e => e.timestamp + (e.action || "") + (e.targetName || "")));
+    return newList.filter(e => !oldKeys.has(e.timestamp + (e.action || "") + (e.targetName || "")));
+  }
+
   // Pending users
   async function loadPendingUsers() {
     const pendingList = document.getElementById('pendingList');
@@ -663,7 +787,7 @@
       document.getElementById('successMsg').innerText = `User "${username}" approved.`;
       loadPendingUsers();
       loadUsers();
-      loadSiteHistory();
+      await loadSiteHistory(true); // notification
     } catch(e) {
       alert("Failed: "+e.message);
     }
@@ -681,7 +805,7 @@
       document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
       loadPendingUsers();
       loadUsers();
-      loadSiteHistory();
+      await loadSiteHistory(true);
     } catch(e) {
       alert("Failed: "+e.message);
     }
@@ -737,14 +861,14 @@
       if (!res.ok) throw new Error(res.error || "Error removing user");
       document.getElementById('successMsg').innerText = `User "${username}" removed.`;
       loadUsers();
-      loadSiteHistory();
+      await loadSiteHistory(true);
     } catch(e) {
       alert("Failed: "+e.message);
     }
   }
 
-  // Site-wide history
-  async function loadSiteHistory() {
+  // Site-wide history, with notification
+  async function loadSiteHistory(showNotif = true) {
     const tbody = document.getElementById('historyTbody');
     tbody.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
     try {
@@ -755,12 +879,68 @@
       if (!res.ok || !Array.isArray(res.entries)) throw new Error("No history found");
       if (res.entries.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5"><i>No history entries.</i></td></tr>`;
+        prevSiteHistory = [];
         return;
       }
+
+      // --- Notification logic ---
+      if (showNotif && Array.isArray(prevSiteHistory) && prevSiteHistory.length > 0) {
+        // Find new entries only
+        const newEntries = diffSiteHistory(prevSiteHistory, res.entries);
+        if (newEntries.length > 0) {
+          // For each new entry, show a notification
+          for (const entry of newEntries) {
+            let subText = "";
+            let mainText = "New Update";
+            if (entry.action && entry.targetName) {
+              // Compose subtext
+              let detailsBy = "";
+              if (entry.details && entry.details.user) {
+                detailsBy = entry.details.user;
+              } else if (entry.user) {
+                detailsBy = entry.user;
+              }
+              if (entry.action.includes("job")) {
+                // Show what was changed
+                if (entry.action === "updated job" && entry.details && entry.details.changes) {
+                  const fields = Object.keys(entry.details.changes).map(f => {
+                    switch(f){
+                      case "notes": return "notes updated";
+                      case "scheduledDate": return "scheduled date updated";
+                      case "proposedScheduledDate": return "proposed scheduled date updated";
+                      case "deliveryDate": return "delivery date updated";
+                      case "jobDescription": return "job description updated";
+                      case "jobLocation": return "job location updated";
+                      case "customerName": return "customer name updated";
+                      case "status": return "status updated";
+                      case "amount": return "amount updated";
+                      default: return f + " updated";
+                    }
+                  }).join(", ");
+                  subText = `Job "${entry.targetName}": ${fields} by ${detailsBy}`;
+                } else if (entry.action === "deleted job") {
+                  subText = `Job "${entry.targetName}" deleted by ${detailsBy}`;
+                } else if (entry.action === "created job") {
+                  subText = `Job "${entry.targetName}" created by ${detailsBy}`;
+                } else {
+                  subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
+                }
+              } else if (entry.action.includes("user")) {
+                // User actions
+                subText = `User "${entry.targetName}" ${entry.action} by ${detailsBy}`;
+              } else {
+                subText = `${entry.action} (${entry.targetName}) by ${detailsBy}`;
+              }
+              showNotificationPopup(mainText, subText);
+            }
+          }
+        }
+      }
+      prevSiteHistory = res.entries.slice();
+
       tbody.innerHTML = "";
       res.entries.forEach(entry => {
         const tr = document.createElement('tr');
-        // Show targetName if present, else fallback to target
         tr.innerHTML = `
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
           <td>${entry.user || ''}</td>
@@ -774,47 +954,6 @@
       tbody.innerHTML = `<tr><td colspan="5">Failed to load site history.</td></tr>`;
     }
   }
-
-  // --- Banner toggle logic ---
-  const $bannerToggleGroup = document.getElementById('bannerToggleGroup');
-  const $bannerToggleCheckbox = document.getElementById('bannerToggleCheckbox');
-  const $bannerToggleStatus = document.getElementById('bannerToggleStatus');
-
-  async function fetchBannerState() {
-    try {
-      const r = await fetch(API_URL + '/api/banner');
-      const res = await r.json();
-      if (res && typeof res.enabled === "boolean") {
-        $bannerToggleCheckbox.checked = !!res.enabled;
-        $bannerToggleStatus.innerText = res.enabled ? "Banner is ON" : "Banner is OFF";
-      }
-    } catch (e) {
-      $bannerToggleStatus.innerText = "Error loading banner state";
-    }
-  }
-
-  async function updateBannerState(enabled) {
-    $bannerToggleStatus.innerText = "Updating...";
-    try {
-      const r = await fetch(API_URL + '/api/admin/banner', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': adminToken
-        },
-        body: JSON.stringify({ enabled })
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Failed to update banner");
-      $bannerToggleStatus.innerText = enabled ? "Banner is ON" : "Banner is OFF";
-    } catch (e) {
-      $bannerToggleStatus.innerText = "Failed to update";
-    }
-  }
-
-  $bannerToggleCheckbox.addEventListener('change', function() {
-    updateBannerState(this.checked);
-  });
 
   // Initial page load
   showLogin();
