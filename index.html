@@ -11,8 +11,6 @@
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --secondary: #f1f5f9;
-  --warning: #f3b700;
-  --warning-hover: #ffc300;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --border: #e5e7eb;
@@ -382,6 +380,14 @@ button[type="button"]:hover, .button.secondary:hover {
   background: var(--primary);
   color: #fff;
 }
+.button.danger, .action-btn {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+}
+.button.danger:hover, .action-btn:hover {
+  background: var(--danger-hover);
+}
 .table-wrapper {
   overflow-x: auto;
   background: #fff;
@@ -488,59 +494,6 @@ body.dark .edit-btn:hover, body.dark .edit-btn:focus {
   color: #fff !important;
 }
 .action-btn:active, .edit-btn:active {
-  transform: scale(0.96);
-}
-    .his-btn {
-  background: #fff;
-  color: var(--primary);
-  border: 1.5px solid var(--primary);
-  margin-right: 0.5em;
-  transition: background var(--transition), color var(--transition);
-}
-.his-btn:hover {
-  background: var(--primary-hover);
-  color: #fff;
-}
-.his-btn:hover, .his-btn:focus {
-  color: #fff !important;
-}
-body.dark .his-btn {
-  background: var(--dark-secondary);
-  color: #99b7ff;
-  border: 1.5px solid #99b7ff;
-}
-body.dark .his-btn:hover, body.dark .his-btn:focus {
-  background: var(--primary-hover);
-  color: #fff !important;
-}
-.action-btn:active, .his-btn:active {
-  transform: scale(0.96);
-}
-
-    .danger-btn {
-  background: #fff;
-  color: var(--primary);
-  border: 1.5px solid var(--primary);
-  margin-right: 0.5em;
-  transition: background var(--transition), color var(--transition);
-}
-.danger-btn:hover {
-  background: var(--primary-hover);
-  color: #fff;
-}
-.danger-btn:hover, .danger-btn:focus {
-  color: #fff !important;
-}
-body.dark .danger-btn {
-  background: var(--dark-secondary);
-  color: #99b7ff;
-  border: 1.5px solid #99b7ff;
-}
-body.dark .danger-btn:hover, body.dark .danger-btn:focus {
-  background: var(--primary-hover);
-  color: #fff !important;
-}
-.action-btn:active, .danger-btn:active {
   transform: scale(0.96);
 }
 @keyframes pop-btn {
@@ -773,16 +726,6 @@ body.dark .action-btn[title="View History"]:focus {
   color: #fff !important;
   background: #f3b700 !important;
 }
-.action-btn[title="Delete Job"]:hover, 
-.action-btn[title="Delete Job"]:focus {
-  color: #fff !important;
-  background: var(--danger-hover) !important;
-}
-body.dark .action-btn[title="Delete Job"]:hover, 
-body.dark .action-btn[title="Delete Job"]:focus {
-  color: #fff !important;
-  background: var(--danger-hover) !important;
-}
 .tooltip {
   position: relative;
   cursor: pointer;
@@ -828,51 +771,6 @@ body.dark .tooltip[data-tooltip]:hover:after, body.dark .tooltip[data-tooltip]:f
 }
 body.dark .tooltip[data-tooltip]:hover:before, body.dark .tooltip[data-tooltip]:focus:before {
   border-bottom: 6px solid #34345c;
-}
-.joblist-header-row {
-  display: flex;
-  align-items: center;
-  gap: 1.2em;
-  margin-bottom: 0.7em;
-}
-#customerSearchBar {
-  padding: 0.55em 1.1em;
-  font-size: 1.01rem;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  width: 230px;
-  outline: none;
-  transition: border var(--transition), background var(--transition), color var(--transition);
-  background: #fff;
-  color: #222;
-}
-body.dark #customerSearchBar {
-  background: var(--dark-secondary);
-  border: 1.5px solid var(--dark-border);
-  color: var(--dark-text);
-}
-#customerSearchBar:focus {
-  border: 1.5px solid var(--primary);
-}
-@media (max-width: 700px) {
-  #customerSearchBar {
-    width: 100%;
-    font-size: 0.98rem;
-  }
-  .joblist-header-row {
-  display: flex;
-  align-items: center;
-  gap: 1.2em;
-  margin-bottom: 0.7em;
-}
-  .joblist-header-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-.joblist-header-center h2 {
-  text-align: center;
-  width: 100%;
 }
   </style>
 </head>
@@ -966,13 +864,7 @@ body.dark #customerSearchBar {
         <button type="button" class="button" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
       </div>
     </form>
-    <!-- Job List header row with live search bar -->
-    <div class="joblist-header-row">
-  <input id="customerSearchBar" type="text" placeholder="Search customer name..." autocomplete="on" />
-  <div class="joblist-header-center">
-    <h2 style="margin:0;">Job List</h2>
-  </div>
-  </div>
+    <h2>Job List</h2>
     <div class="table-wrapper">
       <table id="jobTable">
         <thead>
@@ -1027,10 +919,6 @@ body.dark #customerSearchBar {
   const $historyModal = document.getElementById('historyModal');
   const $historyModalClose = document.getElementById('historyModalClose');
   const $historyContent = document.getElementById('historyContent');
-
-  // --- Search Bar Element ---
-  const $customerSearchBar = document.getElementById('customerSearchBar');
-  let customerSearchFilter = ""; // Current live filter
 
   function showBackendLoader(show) {
     if (show) {
@@ -1295,36 +1183,20 @@ body.dark #customerSearchBar {
       return date.toLocaleString();
     } catch { return ts; }
   }
-
-  // --- Live customer search integration ---
-  // Listen for input events and filter jobs live as user types
-  $customerSearchBar.addEventListener('input', function() {
-    customerSearchFilter = $customerSearchBar.value.trim().toLowerCase();
-    renderJobs();
-  });
-
-  // --- Update renderJobs to use customerSearchFilter ---
   function renderJobs() {
     const tbody = document.getElementById('jobTable').querySelector('tbody');
     tbody.innerHTML = '';
-    // Filter jobs if search filter is active
-    let filteredJobs = jobs;
-    if (customerSearchFilter) {
-      filteredJobs = jobs.filter(job => 
-        String(job.customerName || '').toLowerCase().includes(customerSearchFilter)
-      );
-    }
-    if (filteredJobs.length === 0) {
+    if (jobs.length === 0) {
       const tr = document.createElement('tr');
       tr.className = 'empty-row';
       const td = document.createElement('td');
       td.colSpan = 8;
-      td.textContent = customerSearchFilter ? "No jobs found." : "No jobs yet. Please add a job above.";
+      td.textContent = "No jobs yet. Please add a job above.";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
     }
-    filteredJobs.forEach((job, idx) => {
+    jobs.forEach((job, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="tooltip" data-tooltip="Customer Name">${escapeHTML(job.customerName)}</td>
@@ -1338,9 +1210,9 @@ body.dark #customerSearchBar {
           <span class="job-added-by tooltip" data-tooltip="User who added the job">Added by: ${escapeHTML(job.addedBy || "unknown")}</span>
         </td>
         <td>
-          <button class="action-btn edit-btn" title="Edit Job" onclick="editJob('${job._id}')"><i class="fa-solid fa-pen"></i></button>
-          <button class="action-btn his-btn" title="View History" onclick="showHistory('${job._id}')"><i class="fa-solid fa-clock-rotate-left"></i></button>
-          <button class="action-btn danger-btn" title="Delete Job" onclick="deleteJob('${job._id}')"><i class="fa-solid fa-trash"></i></button>
+          <button class="edit-btn action-btn tooltip" title="Edit" data-tooltip="Edit this job" onclick="editJob('${job.id || ""}')">Edit</button>
+          <button class="action-btn tooltip" style="background:#f3b700;color:#222;" title="View History" data-tooltip="View job history" onclick="showJobHistory('${job.id || ""}')">History</button>
+          <button class="action-btn tooltip" title="Delete" data-tooltip="Delete this job" onclick="deleteJob(${idx})">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
