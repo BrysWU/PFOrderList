@@ -1946,6 +1946,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+  // --- Banner warning feature ---
+  const $siteWarningBanner = document.getElementById('siteWarningBanner');
+  let bannerState = false;
+  let bannerSSE = null;
+
+  function applyBanner(state) {
+    bannerState = !!state;
+    if (bannerState) {
+      $siteWarningBanner.style.display = 'block';
+      document.body.classList.add('banner-active');
+    } else {
+      $siteWarningBanner.style.display = 'none';
+      document.body.classList.remove('banner-active');
+    }
+  }
+
+  // Prefer Server-Sent-Events (SSE) for live banner state
+  function setupBannerLiveUpdates() {
+    if (bannerSSE) {
+      bannerSSE.close();
+      bannerSSE = null;
+    }
+    try {
+      bannerSSE = new EventSource(API_URL + '/api/banner/stream');
+      bannerSSE.onmessage = function(evt) {
+        try {
+          const data = JSON.parse(evt.data);
+          applyBanner(data.enabled);
+        } catch {}
+      };
+      bannerSSE.onerror = function() {
+        // fallback to polling if SSE fails
+        setTimeout(pollBannerState, 10000);
+        bannerSSE.close();
+        bannerSSE = null;
+      };
+    } catch {
+      // fallback to polling
+      pollBannerState();
+    }
+  }
+  function pollBannerState() {
+    fetch(API_URL + '/api/banner')
+      .then(r => r.json())
+      .then(res => {
+        if (typeof res.enabled === "boolean") {
+          applyBanner(res.enabled);
+        }
+      })
+      .catch(()=>{});
+    setTimeout(pollBannerState, 15000);
+  }
+  // Start live updates as soon as possible
+  setupBannerLiveUpdates();
+const NOTIF_API_URL = API_URL;
+const $notifPopup = document.getElementById('notificationPopup');
+const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
+let notifTimer = null;
+function hideNotificationPopup() {
+  if ($notifPopup) {
+    $notifPopup.classList.remove('visible');
+    setTimeout(() => { $notifPopup.style.display = "none"; }, 500);
+    if (notifTimer) clearTimeout(notifTimer);
+  }
+}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
