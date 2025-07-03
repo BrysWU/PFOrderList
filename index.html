@@ -1166,13 +1166,78 @@ body.dark #notificationPopup .notif-sub {
     body.dark .animated-border-box:after {
       background: var(--dark-card);
     }
+
+    /* Glowing Border Animation1 */
+.animated-border-box1, .animated-border-box-glow1{
+    max-height: 345.81px;
+    max-width: 350px;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+    z-index: 0;
+    border-radius: 10px;
+    justify-self: anchor-center;
+    align-self: anchor-center;
+}
+.animated-border-box-glow1{
+  overflow: hidden;
+  filter: blur(20px);
+}
+.animated-border-box1:before, .animated-border-box-glow1:before {
+  content: '';
+  z-index: -2;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  position: absolute;
+  width: 99999px;
+  height: 99999px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+  animation: rotate 4s linear infinite;
+}
+.animated-border-box1:after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 5px;
+  top: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  background: #fff;
+  border-radius: 7px;
+}
+@keyframes rotate1 {
+  100% {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+    .animated-border-parent1 {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.auth-section > *:not(.animated-border-box1):not(.animated-border-box-glow1) {
+  position: relative;
+  z-index: 1;
+}
+.animated-border-parent1 > *:not(.animated-border-box1):not(.animated-border-box-glow1) {
+  position: relative;
+  z-index: 1;
+}
+    body.dark .animated-border-box1:after {
+      background: var(--dark-card);
+    }
 </style>
 </head>
 <body>
   <!-- Notification Popup (for job updates) -->
 <div id="notificationPopup" style="display:none;">
-    <div class="animated-border-box-glow"></div>
-  <div class="animated-border-box"></div>
+    <div class="animated-border-box-glow1"></div>
+  <div class="animated-border-box1"></div>
   <button class="notif-close" title="Close notification" onclick="hideNotificationPopup()">&times;</button>
   <div class="notif-title">Job Update</div>
   <div class="notif-sub"></div>
