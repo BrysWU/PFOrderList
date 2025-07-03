@@ -945,11 +945,65 @@ body.dark #customerSearchBar {
     position: absolute;
     justify-self: anchor-center;
 }
-</style>
+/* --- site warning banner styles --- */
+    #siteWarningBanner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0; right: 0;
+      width: 100vw;
+      z-index: 3500;
+      background: repeating-linear-gradient(
+        135deg,
+        #f3b700, #f3b700 18px,
+        #232323 18px, #232323 28px,
+        #f3b700 28px, #f3b700 36px
+      );
+      color: #1d1d1d;
+      font-size: 1.14em;
+      font-weight: 700;
+      text-align: center;
+      padding: 1.25em 0 1.25em 0;
+      box-shadow: 0 5px 24px #23232355;
+      border-bottom: 4px double #232323;
+      letter-spacing: 0.03em;
+      animation: bannerStripesMove 2.5s linear infinite;
+      overflow: hidden;
+      user-select: none;
+      cursor: not-allowed;
+      text-shadow: 0 1px 0 #fff7, 0 2px 6px #23232355;
+    }
+    @keyframes bannerStripesMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 80px 0; }
+    }
+    body.banner-active {
+      padding-top: 4.3em !important;
+      /* To avoid content hidden under fixed warning */
+    }
+    @media (max-width: 760px) {
+      #siteWarningBanner { font-size: 1em; padding: 1em 0; }
+      body.banner-active { padding-top: 3.3em !important; }
+    }
+    @media (max-width: 430px) {
+      #siteWarningBanner { font-size: 0.95em; }
+      body.banner-active { padding-top: 2.2em !important; }
+    }
+  </style>
 </head>
 <body>
+  <div id="siteWarningBanner">
+    <span>
+      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-right:0.6em;"></i>
+      <span style="vertical-align:middle;">
+        <span style="border-bottom:2px dashed #232323;padding-bottom:0.1em;">Site Update Notice</span>: 
+        This website is undergoing maintenance or updates. Some features may be temporarily unavailable and service may be interrupted. Thank you for your patience.
+      </span>
+      <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-left:0.6em;"></i>
+    </span>
+  </div>
   <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></g></svg>
+    <svg id="sunIcon" style="display:inline;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5"/><g stroke-width="2"><path d="M12 1[...]</svg>
     <svg id="moonIcon" style="display:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
     <span id="darkToggleText">Dark Mode</span>
   </button>
@@ -1677,6 +1731,61 @@ body.dark #customerSearchBar {
       }
     });
   });
+
+  // --- Banner warning feature ---
+  const $siteWarningBanner = document.getElementById('siteWarningBanner');
+  let bannerState = false;
+  let bannerSSE = null;
+
+  function applyBanner(state) {
+    bannerState = !!state;
+    if (bannerState) {
+      $siteWarningBanner.style.display = 'block';
+      document.body.classList.add('banner-active');
+    } else {
+      $siteWarningBanner.style.display = 'none';
+      document.body.classList.remove('banner-active');
+    }
+  }
+
+  // Prefer Server-Sent-Events (SSE) for live banner state
+  function setupBannerLiveUpdates() {
+    if (bannerSSE) {
+      bannerSSE.close();
+      bannerSSE = null;
+    }
+    try {
+      bannerSSE = new EventSource(API_URL + '/api/banner/stream');
+      bannerSSE.onmessage = function(evt) {
+        try {
+          const data = JSON.parse(evt.data);
+          applyBanner(data.enabled);
+        } catch {}
+      };
+      bannerSSE.onerror = function() {
+        // fallback to polling if SSE fails
+        setTimeout(pollBannerState, 10000);
+        bannerSSE.close();
+        bannerSSE = null;
+      };
+    } catch {
+      // fallback to polling
+      pollBannerState();
+    }
+  }
+  function pollBannerState() {
+    fetch(API_URL + '/api/banner')
+      .then(r => r.json())
+      .then(res => {
+        if (typeof res.enabled === "boolean") {
+          applyBanner(res.enabled);
+        }
+      })
+      .catch(()=>{});
+    setTimeout(pollBannerState, 15000);
+  }
+  // Start live updates as soon as possible
+  setupBannerLiveUpdates();
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
