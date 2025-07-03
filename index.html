@@ -1969,7 +1969,7 @@ function extractJobEventNotification(entry) {
 
 async function pollSiteHistoryForJobEvents() {
   try {
-    const r = await fetch(NOTIF_API_URL+'/api/admin/site-history', {
+    const r = await fetch(NOTIF_API_URL+'/api/job-notifications', {
       headers: auth.token ? { 'Authorization': auth.token } : {}
     });
     const res = await r.json();
