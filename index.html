@@ -1019,9 +1019,98 @@
     position: absolute;
     justify-self: anchor-center;
   }
-  </style>
+  #notificationPopup {
+  position: fixed;
+  top: 85px;
+  left: 0;
+  z-index: 4000;
+  min-width: 260px;
+  max-width: 98vw;
+  background: #fff;
+  color: #222;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px #0002, 0 2px 8px #2563eb1a;
+  padding: 1.1em 1.6em 1em 2.1em;
+  margin-left: -500px;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  pointer-events: none;
+  border-left: 7px solid #2563eb;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 1.05em;
+  transition:
+    margin-left 0.5s cubic-bezier(0.4,0,0.2,1),
+    opacity 0.3s cubic-bezier(0.4,0,0.2,1),
+    background 0.3s, color 0.3s;
+  animation: none;
+}
+#notificationPopup.visible {
+  margin-left: 30px;
+  opacity: 1;
+  pointer-events: auto;
+  animation: slideInLeft 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+#notificationPopup .notif-title {
+  font-weight: 700;
+  color: #2563eb;
+  font-size: 1.13em;
+  margin-bottom: 0.1em;
+}
+#notificationPopup .notif-sub {
+  color: #444;
+  font-size: 0.97em;
+  margin-bottom: 0.02em;
+}
+#notificationPopup .notif-close {
+  position: absolute;
+  top: 0.5em;
+  right: 0.6em;
+  background: none;
+  color: #888;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: color 0.16s, opacity 0.18s;
+  z-index: 2;
+  pointer-events: auto;
+}
+#notificationPopup .notif-close:hover { color: #e03f3f; opacity: 1; }
+body.dark #notificationPopup {
+  background: #232337;
+  color: #d5e4ff;
+  border-left: 7px solid #99b7ff;
+  box-shadow: 0 6px 40px #0005, 0 2px 8px #2563eb18;
+}
+body.dark #notificationPopup .notif-title {
+  color: #99b7ff;
+}
+body.dark #notificationPopup .notif-sub {
+  color: #bcbcf7;
+}
+@keyframes slideInLeft {
+  from { margin-left: -500px; opacity: 0;}
+  to { margin-left: 30px; opacity: 1;}
+}
+@media (max-width: 600px) {
+  #notificationPopup {
+    font-size: 0.98em;
+    padding: 0.9em 1.1em 0.85em 1.4em;
+    margin-left: -100vw;
+  }
+  #notificationPopup.visible { margin-left: 2vw;}
+}
+</style>
 </head>
 <body>
+  <!-- Notification Popup (for job updates) -->
+<div id="notificationPopup" style="display:none;">
+  <button class="notif-close" title="Close notification" onclick="hideNotificationPopup()">&times;</button>
+  <div class="notif-title">Job Update</div>
+  <div class="notif-sub"></div>
+</div>
   <div id="siteWarningBanner">
     <span>
       <div id="siteWarningBannerText">
@@ -1817,6 +1906,101 @@
   }
   // Start live updates as soon as possible
   setupBannerLiveUpdates();
+const NOTIF_API_URL = API_URL;
+const $notifPopup = document.getElementById('notificationPopup');
+const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
+let notifTimer = null;
+function hideNotificationPopup() {
+  if ($notifPopup) {
+    $notifPopup.classList.remove('visible');
+    setTimeout(() => { $notifPopup.style.display = "none"; }, 500);
+    if (notifTimer) clearTimeout(notifTimer);
+  }
+}
+function showNotificationPopup(mainText, subText) {
+  if (!$notifPopup) return;
+  $notifPopup.querySelector('.notif-title').innerText = mainText || "Job Update";
+  $notifSub.innerText = subText || "";
+  $notifPopup.style.display = "flex";
+  setTimeout(() => {
+    $notifPopup.classList.add('visible');
+  }, 40);
+  if (notifTimer) clearTimeout(notifTimer);
+  notifTimer = setTimeout(hideNotificationPopup, 7000);
+}
+window.hideNotificationPopup = hideNotificationPopup;
+
+let lastHistoryTimestamp = null;
+let siteHistoryPollingTimer = null;
+
+function extractJobEventNotification(entry) {
+  if (!entry || !entry.action || !entry.targetName) return null;
+  let mainText = "Job Update";
+  let subText = "";
+  let detailsBy = (entry.details && entry.details.user) || entry.user || "";
+  if (entry.action.includes("job")) {
+    if (entry.action === "updated job" && entry.details && entry.details.changes) {
+      const fields = Object.keys(entry.details.changes).map(f => {
+        switch(f){
+          case "notes": return "notes updated";
+          case "scheduledDate": return "scheduled date updated";
+          case "proposedScheduledDate": return "proposed scheduled date updated";
+          case "deliveryDate": return "delivery date updated";
+          case "jobDescription": return "job description updated";
+          case "jobLocation": return "job location updated";
+          case "customerName": return "customer name updated";
+          case "status": return "status updated";
+          case "amount": return "amount updated";
+          default: return f + " updated";
+        }
+      }).join(", ");
+      subText = `Job "${entry.targetName}": ${fields} by ${detailsBy}`;
+    } else if (entry.action === "deleted job") {
+      subText = `Job "${entry.targetName}" deleted by ${detailsBy}`;
+    } else if (entry.action === "created job") {
+      subText = `Job "${entry.targetName}" created by ${detailsBy}`;
+    } else {
+      subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
+    }
+    return { mainText, subText };
+  }
+  return null;
+}
+
+async function pollSiteHistoryForJobEvents() {
+  try {
+    const r = await fetch(NOTIF_API_URL+'/api/admin/site-history', {
+      headers: auth.token ? { 'Authorization': auth.token } : {}
+    });
+    const res = await r.json();
+    if (!res.ok || !Array.isArray(res.entries)) return;
+    let entries = res.entries;
+    if (lastHistoryTimestamp) {
+      entries = entries.filter(e => e.timestamp > lastHistoryTimestamp);
+    }
+    for (const entry of entries.reverse()) {
+      const notif = extractJobEventNotification(entry);
+      if (notif) showNotificationPopup(notif.mainText, notif.subText);
+    }
+    if (res.entries.length > 0) {
+      lastHistoryTimestamp = res.entries[0].timestamp;
+    }
+  } catch (e) {}
+  siteHistoryPollingTimer = setTimeout(pollSiteHistoryForJobEvents, 7000);
+}
+
+// Call this in showMain() after login, and clear on logout
+const _origShowMain = showMain;
+showMain = function() {
+  _origShowMain();
+  pollSiteHistoryForJobEvents();
+};
+const _origDoLogout = doLogout;
+doLogout = function() {
+  _origDoLogout();
+  if (siteHistoryPollingTimer) clearTimeout(siteHistoryPollingTimer);
+  lastHistoryTimestamp = null;
+};
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
