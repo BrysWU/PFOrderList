@@ -959,19 +959,20 @@ body.dark #customerSearchBar {
         #232323 18px, #232323 28px,
         #f3b700 28px, #f3b700 36px
       );
-      color: #1d1d1d;
-      font-size: 1.14em;
-      font-weight: 700;
-      text-align: center;
-      padding: 1.25em 0 1.25em 0;
       box-shadow: 0 5px 24px #23232355;
-      border-bottom: 4px double #232323;
-      letter-spacing: 0.03em;
       animation: bannerStripesMove 2.5s linear infinite;
       overflow: hidden;
       user-select: none;
       cursor: not-allowed;
+      
+    }
+    #siteWarningBanner, #siteWarningBannerText {
       text-shadow: 0 1px 0 #fff7, 0 2px 6px #23232355;
+      letter-spacing: 0.03em;
+      text-align: center;
+      color: #1d1d1d;
+      font-size: 1.14em;
+      font-weight: 700;
     }
     @keyframes bannerStripesMove {
       0% { background-position: 0 0; }
@@ -994,12 +995,14 @@ body.dark #customerSearchBar {
 <body>
   <div id="siteWarningBanner">
     <span>
+      <div id="siteWarningBannerText">
       <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-right:0.6em;"></i>
       <span style="vertical-align:middle;">
         <span style="border-bottom:2px dashed #232323;padding-bottom:0.1em;">Site Update Notice</span>: 
         This website is undergoing maintenance or updates. Some features may be temporarily unavailable and service may be interrupted. Thank you for your patience.
       </span>
       <i class="fa-solid fa-triangle-exclamation" style="color:#232323;font-size:1.2em;margin-left:0.6em;"></i>
+      </div>
     </span>
   </div>
   <button class="dark-toggle-btn" id="darkToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
