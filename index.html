@@ -2000,17 +2000,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   // Start live updates as soon as possible
   setupBannerLiveUpdates();
-const NOTIF_API_URL = API_URL;
-const $notifPopup = document.getElementById('notificationPopup');
-const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
-let notifTimer = null;
-function hideNotificationPopup() {
-  if ($notifPopup) {
-    $notifPopup.classList.remove('visible');
-    setTimeout(() => { $notifPopup.style.display = "none"; }, 500);
-    if (notifTimer) clearTimeout(notifTimer);
-  }
-}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WGZXEDCM5F"></script>
 <script>
