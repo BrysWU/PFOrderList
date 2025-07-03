@@ -1371,6 +1371,11 @@ body.dark #customerSearchBar {
     editingJobId = id;
     $submitBtn.textContent = "Save Changes";
     $cancelEditBtn.style.display = "";
+    // --- Fix: Unhide the form if minimized ---
+    var mainApp = document.getElementById('mainApp');
+    if (mainApp.classList.contains('minimized')) {
+      mainApp.classList.remove('minimized');
+    }
     window.scrollTo({top: 0, behavior: "smooth"});
   }
   window.showJobHistory = async function(id) {
