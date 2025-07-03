@@ -1103,7 +1103,7 @@ body.dark #notificationPopup .notif-sub {
   #notificationPopup.visible { margin-left: 2vw;}
 }
     /* Glowing Border Animation */
-.animated-border-box1, .animated-border-box-glow1{
+.animated-border, .animated-border-glow{
   max-height: 200px;
   max-width: 250px;
   height: 100%;
@@ -1129,7 +1129,7 @@ body.dark #notificationPopup .notif-sub {
   overflow: hidden;
   filter: blur(20px);
 }
-    .animated-border-box-glow1{
+    .animated-border-glow1{
   overflow: hidden;
   filter: blur(20px);
 }
@@ -1148,7 +1148,7 @@ body.dark #notificationPopup .notif-sub {
   background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
   animation: rotate 4s linear infinite;
 }
-    .animated-border-box1:before, .animated-border-box-glow1:before {
+    .animated-border:before, .animated-border-glow:before {
   content: '';
   z-index: -2;
   text-align: center;
@@ -1179,7 +1179,7 @@ body.dark #notificationPopup .notif-sub {
     transform: translate(-50%, -50%) rotate(1turn);
   }
 }
-    .animated-border-box1:after {
+    .animated-border:after {
   content: '';
   position: absolute;
   z-index: -1;
@@ -1216,8 +1216,8 @@ body.dark #notificationPopup .notif-sub {
 <body>
   <!-- Notification Popup (for job updates) -->
 <div id="notificationPopup" style="display:none;">
-    <div class="animated-border-box-glow"></div>
-  <div class="animated-border-box"></div>
+    <div class="animated-border-glow"></div>
+  <div class="animated-border"></div>
   <button class="notif-close" title="Close notification" onclick="hideNotificationPopup()">&times;</button>
   <div class="notif-title">Job Update</div>
   <div class="notif-sub"></div>
