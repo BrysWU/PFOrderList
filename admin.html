@@ -573,6 +573,234 @@
     .deleteHistoryBtn:hover {
       background: var(--danger-hover);
     }
+
+    /* Delete Confirmation Modal Styles */
+    #deleteConfirmModal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 30, 50, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.3s;
+    }
+    #deleteConfirmModal.active {
+      display: flex;
+    }
+    #deleteConfirmModal .modal-content {
+      background: #fff;
+      color: #222;
+      border-radius: 12px;
+      max-width: 480px;
+      width: 90vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px #1a233877;
+      padding: 2em 2em 1.5em 2em;
+      animation: fade-in 0.4s;
+      position: relative;
+      border: 2.5px solid var(--danger);
+      text-align: center;
+    }
+    body.dark #deleteConfirmModal .modal-content {
+      background: var(--dark-card);
+      color: var(--dark-text);
+      border: 2.5px solid #ff6b6b;
+    }
+    #deleteConfirmModal .modal-close {
+      position: absolute;
+      right: 1.1em;
+      top: 1.1em;
+      font-size: 1.1em;
+      width: 2em;
+      height: 2em;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 8px #e03f3f29;
+      z-index: 2;
+      padding: 0;
+    }
+    #deleteConfirmModal .modal-close:hover {
+      background: var(--danger-hover);
+      color: #fff;
+    }
+    #deleteConfirmModal h3 {
+      margin-bottom: 1.1em;
+      text-align: center;
+      color: var(--danger);
+    }
+    body.dark #deleteConfirmModal h3 { color: #ff6b6b;}
+    #deleteItemName {
+      font-weight: 600;
+      color: var(--primary);
+      margin: 1em 0;
+      word-break: break-word;
+    }
+    body.dark #deleteItemName { color: #99b7ff; }
+    .delete-modal-buttons {
+      display: flex;
+      gap: 1em;
+      justify-content: center;
+      margin-top: 2em;
+    }
+    .delete-modal-btn {
+      padding: 0.7em 2em;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      min-width: 100px;
+    }
+    .delete-modal-btn:hover {
+      transform: translateY(-1px);
+    }
+    .cancel-btn {
+      background: var(--secondary);
+      color: #444;
+      border: 2px solid var(--border);
+    }
+    .cancel-btn:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e0;
+    }
+    body.dark .cancel-btn {
+      background: var(--dark-secondary);
+      color: var(--dark-text);
+      border-color: var(--dark-border);
+    }
+    body.dark .cancel-btn:hover {
+      background: #34345c;
+      border-color: #4a4a6b;
+    }
+    .delete-btn {
+      background: var(--danger);
+      color: #fff;
+    }
+    .delete-btn:hover {
+      background: var(--danger-hover);
+    }
+    @media (max-width: 550px) {
+      #deleteConfirmModal .modal-content { 
+        padding: 1.5em 1em; 
+        width: 95vw;
+      }
+      #deleteConfirmModal .modal-close { 
+        right: 0.8em; 
+        top: 0.8em; 
+        width: 1.8em; 
+        height: 1.8em; 
+        font-size: 1em;
+      }
+      .delete-modal-buttons {
+        flex-direction: column;
+        gap: 0.8em;
+      }
+      .delete-modal-btn {
+        width: 100%;
+        padding: 0.8em 1em;
+      }
+    }
+    .modal-overlay {
+      position: fixed;
+      z-index: 5000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(30, 30, 50, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+    .modal-popup {
+      background: #fff;
+      color: #222;
+      border-radius: 16px;
+      min-width: 320px;
+      max-width: 90vw;
+      box-shadow: 0 8px 32px #1a233877;
+      padding: 2em 2em 1.5em 2em;
+      position: relative;
+      text-align: center;
+      animation: fade-in 0.2s;
+      border: 2.5px solid var(--primary);
+    }
+    .modal-popup h3 {
+      margin-bottom: 1.1em;
+      color: var(--primary);
+    }
+    .modal-popup .modal-actions {
+      margin-top: 1.2em;
+      display: flex;
+      justify-content: center;
+      gap: 1.2em;
+    }
+    .modal-popup button {
+      min-width: 90px;
+      padding: 0.7em 1.5em;
+      font-size: 1.02em;
+    }
+    .modal-popup .modal-cancel-btn {
+      background: #fff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+    .modal-popup .modal-cancel-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .modal-popup .modal-danger-btn {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+    }
+    .modal-popup .modal-danger-btn:hover {
+      background: var(--danger-hover);
+    }
+    body.dark .modal-popup {
+      background: var(--dark-card);
+      color: #d5e4ff;
+      border: 2.5px solid #99b7ff;
+    }
+    body.dark .modal-popup h3 { color: #99b7ff;}
+    body.dark .modal-popup .modal-cancel-btn {
+      background: var(--dark-secondary);
+      color: #99b7ff;
+      border: 1.5px solid #99b7ff;
+    }
+    body.dark .modal-popup .modal-cancel-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    @media (max-width: 450px) {
+      .modal-popup { min-width: 90vw; padding: 1em 0.5em 1em 0.5em; }
+    }
+    .restoreHistoryBtn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4em 1em;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0.5em;
+      box-shadow: 0 2px 6px #2563eb20;
+      transition: background var(--transition), color var(--transition);
+    }
+    .restoreHistoryBtn:hover {
+      background: var(--primary-hover);
+    }
   </style>
 </head>
 <body>
@@ -636,6 +864,7 @@
             <th class="tooltip" data-tooltip="Affected Job/User">Target</th>
             <th class="tooltip" data-tooltip="Details of the changes">Details</th>
             <th>Delete</th>
+            <th>Restore</th>
           </tr>
         </thead>
         <tbody id="historyTbody">
@@ -643,6 +872,19 @@
       </table>
     </div>
   </main>
+  
+  <!-- Modal for Confirm Delete (re-usable) -->
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal-popup" id="modalPopup">
+      <h3 id="modalTitle">Are you sure?</h3>
+      <div id="modalContent"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel-btn" id="modalCancelBtn">Cancel</button>
+        <button class="modal-danger-btn" id="modalConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   const API_URL = 'https://pfback-dcuc.onrender.com';
   let adminToken = null;
@@ -672,6 +914,53 @@
   }
   window.hideNotificationPopup = hideNotificationPopup;
 
+  // Custom Confirmation Modal Functions (Universal)
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalContent = document.getElementById('modalContent');
+  const modalCancelBtn = document.getElementById('modalCancelBtn');
+  const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+  let modalCallback = null;
+
+  function showModal(options) {
+    modalTitle.textContent = options.title || "Are you sure?";
+    modalContent.textContent = options.content || "";
+    modalConfirmBtn.textContent = options.confirmText || "Delete";
+    modalCallback = options.onConfirm || null;
+    modalOverlay.style.display = "flex";
+    setTimeout(() => { modalCancelBtn.focus(); }, 100);
+  }
+  function closeModal() {
+    modalOverlay.style.display = "none";
+    modalCallback = null;
+  }
+  modalCancelBtn.onclick = closeModal;
+  modalConfirmBtn.onclick = function() {
+    if (modalCallback) modalCallback();
+    closeModal();
+  };
+  modalOverlay.onclick = function(e) {
+    if (e.target === modalOverlay) closeModal();
+  };
+  modalOverlay.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    } else if (e.key === 'Tab') {
+      // Focus trap
+      const focusable = modalOverlay.querySelectorAll('button');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
   // Banner logic
   const $bannerToggleGroup = document.getElementById('bannerToggleGroup');
   const $bannerToggleCheckbox = document.getElementById('bannerToggleCheckbox');
@@ -691,7 +980,6 @@
       if (res && typeof res.enabled === "boolean") {
         updateBannerCheckboxUI(res.enabled, false);
         if (bannerStateLast !== null && res.enabled !== bannerStateLast) {
-          // Change detected, notification
           showNotificationPopup(
             "Banner Update",
             `Site banner is now ${res.enabled ? "ENABLED" : "DISABLED"}`
@@ -812,7 +1100,7 @@
     showLogin();
   };
 
-  // Notification history diff logic
+  // Site history notification diff logic
   let prevSiteHistory = [];
   function diffSiteHistory(oldList, newList) {
     const oldKeys = new Set(oldList.map(e => e.timestamp + (e.action || "") + (e.targetName || "")));
@@ -854,40 +1142,52 @@
     }
   }
   async function approveUser(username) {
-    if (!confirm(`Approve user "${username}"?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/approve', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error approving user");
-      document.getElementById('successMsg').innerText = `User "${username}" approved.`;
-      loadPendingUsers();
-      loadUsers();
-      await loadSiteHistory(true); // notification
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showModal({
+      title: "Approve User",
+      content: `Approve user "${username}"?`,
+      confirmText: "Approve",
+      onConfirm: async () => {
+        try {
+          const r = await fetch(API_URL+'/api/admin/approve', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+            body: JSON.stringify({username})
+          });
+          const res = await r.json();
+          if (!res.ok) throw new Error(res.error || "Error approving user");
+          document.getElementById('successMsg').innerText = `User "${username}" approved.`;
+          loadPendingUsers();
+          loadUsers();
+          await loadSiteHistory(true); // notification
+        } catch(e) {
+          showNotificationPopup("Approve Failed", e.message);
+        }
+      }
+    });
   }
   async function denyUser(username) {
-    if (!confirm(`Deny (delete) user "${username}"?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/deny', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error denying user");
-      document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
-      loadPendingUsers();
-      loadUsers();
-      await loadSiteHistory(true);
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showModal({
+      title: "Deny User",
+      content: `Deny (delete) user "${username}"?`,
+      confirmText: "Deny",
+      onConfirm: async () => {
+        try {
+          const r = await fetch(API_URL+'/api/admin/deny', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+            body: JSON.stringify({username})
+          });
+          const res = await r.json();
+          if (!res.ok) throw new Error(res.error || "Error denying user");
+          document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
+          loadPendingUsers();
+          loadUsers();
+          await loadSiteHistory(true);
+        } catch(e) {
+          showNotificationPopup("Deny Failed", e.message);
+        }
+      }
+    });
   }
 
   // List all users (admins and users)
@@ -929,44 +1229,84 @@
     }
   }
   async function removeUser(username) {
-    if (!confirm(`Remove user "${username}" from the site?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/remove-user', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error removing user");
-      document.getElementById('successMsg').innerText = `User "${username}" removed.`;
-      loadUsers();
-      await loadSiteHistory(true);
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showModal({
+      title: "Remove User",
+      content: `Remove user "${username}" from the site?`,
+      confirmText: "Remove",
+      onConfirm: async () => {
+        try {
+          const r = await fetch(API_URL+'/api/admin/remove-user', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+            body: JSON.stringify({username})
+          });
+          const res = await r.json();
+          if (!res.ok) throw new Error(res.error || "Error removing user");
+          document.getElementById('successMsg').innerText = `User "${username}" removed.`;
+          loadUsers();
+          await loadSiteHistory(true);
+        } catch(e) {
+          showNotificationPopup("Remove Failed", e.message);
+        }
+      }
+    });
   }
 
   // Delete history entry
   async function deleteHistoryEntry(entryId) {
-    if (!confirm("Delete this history entry? This cannot be undone.")) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/delete-history', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
-        body: JSON.stringify({ id: entryId })
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Failed to delete history entry");
-      loadSiteHistory();
-    } catch (e) {
-      alert("Failed: " + e.message);
-    }
+    showModal({
+      title: "Delete History Entry",
+      content: "Delete this history entry? This cannot be undone.",
+      confirmText: "Delete",
+      onConfirm: async () => {
+        try {
+          const r = await fetch(API_URL+'/api/admin/delete-history', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
+            body: JSON.stringify({ id: entryId })
+          });
+          const res = await r.json();
+          if (!res.ok) throw new Error(res.error || "Failed to delete history entry");
+          showNotificationPopup("Entry Deleted", "History entry deleted.");
+          loadSiteHistory();
+        } catch (e) {
+          showNotificationPopup("Delete Failed", e.message);
+        }
+      }
+    });
   }
 
-  // Site-wide history, with notification
+  // Restore job from site history
+  async function restoreJobFromHistory(historyId, customerName) {
+    showModal({
+      title: "Restore Deleted Job",
+      content: `Are you sure you want to restore the deleted job for customer "${customerName}"?`,
+      confirmText: "Restore",
+      onConfirm: async function() {
+        try {
+          const r = await fetch(API_URL + '/api/admin/restore-job', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': adminToken
+            },
+            body: JSON.stringify({ historyId })
+          });
+          const res = await r.json();
+          if (!res.ok) throw new Error(res.error || "Failed to restore job");
+          showNotificationPopup("Job Restored", `Job for "${customerName}" has been restored.`);
+          loadSiteHistory();
+        } catch (e) {
+          showNotificationPopup("Restore Failed", e.message);
+        }
+      }
+    });
+  }
+
+  // Site-wide history, with notification and restore button
   async function loadSiteHistory(showNotif = true) {
     const tbody = document.getElementById('historyTbody');
-    tbody.innerHTML = `<tr><td colspan="6">Loading...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">Loading...</td></tr>`;
     try {
       const r = await fetch(API_URL+'/api/admin/site-history', {
         headers: { 'Authorization': adminToken }
@@ -974,11 +1314,11 @@
       const res = await r.json();
       if (!res.ok || !Array.isArray(res.entries)) throw new Error("No history found");
       if (res.entries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6"><i>No history entries.</i></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><i>No history entries.</i></td></tr>`;
         prevSiteHistory = [];
         return;
       }
-      // Notification logic
+      // Notification logic (only for new entries)
       if (showNotif && Array.isArray(prevSiteHistory) && prevSiteHistory.length > 0) {
         const newEntries = diffSiteHistory(prevSiteHistory, res.entries);
         if (newEntries.length > 0) {
@@ -1013,6 +1353,8 @@
                   subText = `Job "${entry.targetName}" deleted by ${detailsBy}`;
                 } else if (entry.action === "created job") {
                   subText = `Job "${entry.targetName}" created by ${detailsBy}`;
+                } else if (entry.action === "restored job") {
+                  subText = `Job "${entry.targetName}" restored by ${detailsBy}`;
                 } else {
                   subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
                 }
@@ -1038,13 +1380,18 @@
           <td>${entry.targetName ? entry.targetName : (entry.target || '')}</td>
           <td><pre style="white-space: pre-line; font-size:0.97em; background:none; border:none; margin:0; padding:0;">${entry.details ? JSON.stringify(entry.details, null, 2) : ''}</pre></td>
           <td><button class="deleteHistoryBtn tooltip" data-tooltip="Delete this history entry" data-id="${entry._id || ''}">Delete</button></td>
+          <td>
+            ${entry.action === "deleted job" ? `<button class="restoreHistoryBtn tooltip" data-tooltip="Restore deleted job" data-id="${entry._id || ''}">Restore</button>` : ''}
+          </td>
         `;
-        const btn = tr.querySelector('.deleteHistoryBtn');
-        btn.onclick = () => deleteHistoryEntry(entry._id);
+        tr.querySelector('.deleteHistoryBtn').onclick = () => deleteHistoryEntry(entry._id);
+        if (entry.action === "deleted job") {
+          tr.querySelector('.restoreHistoryBtn').onclick = () => restoreJobFromHistory(entry._id, entry.targetName || "");
+        }
         tbody.appendChild(tr);
       });
     } catch(e) {
-      tbody.innerHTML = `<tr><td colspan="6">Failed to load site history.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7">Failed to load site history.</td></tr>`;
     }
   }
 
