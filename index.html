@@ -1281,10 +1281,10 @@ body.dark .animated-border-box:after {
       <div class="topbar-left-group">
         <div class="export-import-bar">
           <button class="button" id="exportBtn">Export Jobs</button>
-          <label>
+       <!--   <label>
             <input type="file" id="importFile" accept=".json">
             <span class="button secondary" tabindex="0">Import Jobs</span>
-          </label>
+          </label>-->
         </div>
       </div>
       <div class="topbar-center-group">
@@ -1421,6 +1421,7 @@ body.dark .animated-border-box:after {
       </div>
     </div>
   </div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 const API_URL = 'https://pfback-dcuc.onrender.com';
 
@@ -2017,6 +2018,7 @@ $historyModal.onclick = function(e) {
   }
 };
 
+  // CLEAR FORM //
 document.getElementById('job-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   const job = getFormData();
@@ -2041,43 +2043,70 @@ document.getElementById('clearBtn').addEventListener('click', function() {
 $cancelEditBtn.addEventListener('click', function() {
   clearForm();
 });
+
+  // EXPORT FUNCTIONALITY (EXCEL) //
+function exportJobsToExcel(jobsArray, fileName = 'jobs-export.xlsx') {
+  if (typeof XLSX === 'undefined') {
+    alert('XLSX library not found. Please include https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    return;
+  }
+  // Only export fields that are useful in Excel
+  const exportData = jobsArray.map(j => ({
+    'Customer Name': j.customerName || '',
+    'Job Description': j.jobDescription || '',
+    'Job Location': j.jobLocation || '',
+    'Delivery Date': j.deliveryDate || '',
+    'Proposed Scheduled Date': j.proposedScheduledDate || '',
+    'Scheduled Date': j.scheduledDate || '',
+    'Notes': j.notes || '',
+    'Added By': j.addedBy || '',
+    'Status': j.status || '',
+    'Amount': j.amount != null ? j.amount : ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Jobs");
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 document.getElementById('exportBtn').addEventListener('click', function() {
   if(!jobs.length) {
     alert("No jobs to export.");
     return;
   }
-  const data = JSON.stringify(jobs, null, 2);
-  const blob = new Blob([data], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'jobs-export.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  exportJobsToExcel(jobs, 'jobs-export.xlsx');
 });
-document.getElementById('importFile').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async function(ev) {
-    try {
-      const imported = JSON.parse(ev.target.result);
-      if (!Array.isArray(imported)) throw new Error("Invalid file");
-      if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
-      for (const job of imported) {
-        await addJob(job);
-      }
-      await loadJobs({silent:true});
-      alert('Jobs imported!');
-    } catch (err) {
-      alert('Failed to import: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-});
+
+  // IMPORT FUNCTIONALITY //
+//document.getElementById('importFile').addEventListener('change', function(e) {
+//  const file = e.target.files[0];
+//  if (!file) return;
+//  const reader = new FileReader();
+//  reader.onload = async function(ev) {
+//    try {
+//      const imported = JSON.parse(ev.target.result);
+//      if (!Array.isArray(imported)) throw new Error("Invalid file");
+//      if (imported.length && (!imported[0].customerName || !imported[0].jobDescription)) throw new Error("Invalid job format");
+//      for (const job of imported) {
+//        await addJob(job);
+//      }
+//      await loadJobs({silent:true});
+//      alert('Jobs imported!');
+//    } catch (err) {
+//      alert('Failed to import: ' + err.message);
+//    }
+//  };
+//  reader.readAsText(file);
+//  e.target.value = "";
+//});
 
 let backendReady = false;
 let backendAttempts = 0;
