@@ -573,6 +573,29 @@
     .deleteHistoryBtn:hover {
       background: var(--danger-hover);
     }
+    
+    /* Restore button styles for history */
+    .restoreJobBtn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4em 1em;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0.5em;
+      box-shadow: 0 2px 6px #10b98120;
+      transition: background var(--transition), color var(--transition);
+    }
+    .restoreJobBtn:hover {
+      background: #059669;
+    }
+    .restoreJobBtn:disabled {
+      background: #d1d5db;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
 
     /* Delete Confirmation Modal Styles */
     #deleteConfirmModal {
@@ -774,6 +797,7 @@
             <th class="tooltip" data-tooltip="Action performed">Action</th>
             <th class="tooltip" data-tooltip="Affected Job/User">Target</th>
             <th class="tooltip" data-tooltip="Details of the changes">Details</th>
+            <th>Restore</th>
             <th>Delete</th>
           </tr>
         </thead>
@@ -1183,6 +1207,43 @@
     });
   }
 
+  // Restore deleted job
+  async function restoreJob(entry) {
+    const jobName = entry.targetName || 'Unknown Job';
+    showDeleteConfirmModal(`Restore job "${jobName}"? This will add it back to the active job list.`, async () => {
+      try {
+        // Extract job details from the history entry
+        const jobDetails = entry.details || {};
+        
+        const restoreData = {
+          customerName: jobDetails.customerName || entry.targetName || 'Restored Customer',
+          jobDescription: jobDetails.jobDescription || 'Restored job - details may be incomplete',
+          location: jobDetails.location || '',
+          jobType: jobDetails.jobType || '',
+          amount: jobDetails.amount || 0,
+          restoredFromHistory: true,
+          originalId: jobDetails.id || null,
+          originalDeleteTimestamp: entry.timestamp
+        };
+
+        const r = await fetch(API_URL+'/api/admin/restore-job', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
+          body: JSON.stringify(restoreData)
+        });
+        
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Failed to restore job");
+        
+        document.getElementById('successMsg').innerText = `Job "${jobName}" restored successfully.`;
+        await loadSiteHistory(true); // Refresh history with notifications
+        
+      } catch (e) {
+        alert("Failed to restore job: " + e.message);
+      }
+    });
+  }
+
   // Site-wide history, with notification
   async function loadSiteHistory(showNotif = true) {
     const tbody = document.getElementById('historyTbody');
@@ -1194,7 +1255,7 @@
       const res = await r.json();
       if (!res.ok || !Array.isArray(res.entries)) throw new Error("No history found");
       if (res.entries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6"><i>No history entries.</i></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><i>No history entries.</i></td></tr>`;
         prevSiteHistory = [];
         return;
       }
@@ -1251,20 +1312,31 @@
       tbody.innerHTML = "";
       res.entries.forEach(entry => {
         const tr = document.createElement('tr');
+        const isDeletedJob = entry.action === "deleted job";
+        
         tr.innerHTML = `
           <td>${entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ''}</td>
           <td>${entry.user || ''}</td>
           <td>${entry.action || ''}</td>
           <td>${entry.targetName ? entry.targetName : (entry.target || '')}</td>
           <td><pre style="white-space: pre-line; font-size:0.97em; background:none; border:none; margin:0; padding:0;">${entry.details ? JSON.stringify(entry.details, null, 2) : ''}</pre></td>
+          <td>${isDeletedJob ? `<button class="restoreJobBtn tooltip" data-tooltip="Restore this job to active list">Restore</button>` : ''}</td>
           <td><button class="deleteHistoryBtn tooltip" data-tooltip="Delete this history entry" data-id="${entry._id || ''}">Delete</button></td>
         `;
-        const btn = tr.querySelector('.deleteHistoryBtn');
-        btn.onclick = () => deleteHistoryEntry(entry._id);
+        
+        // Set up event listeners
+        const deleteBtn = tr.querySelector('.deleteHistoryBtn');
+        deleteBtn.onclick = () => deleteHistoryEntry(entry._id);
+        
+        if (isDeletedJob) {
+          const restoreBtn = tr.querySelector('.restoreJobBtn');
+          restoreBtn.onclick = () => restoreJob(entry);
+        }
+        
         tbody.appendChild(tr);
       });
     } catch(e) {
-      tbody.innerHTML = `<tr><td colspan="6">Failed to load site history.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7">Failed to load site history.</td></tr>`;
     }
   }
 
