@@ -1520,6 +1520,7 @@ let lastHistoryTimestamp = null;
 let siteHistoryPollingTimer = null;
 let siteHistoryInitialized = false;
 
+// --- CHANGED: notification logic for restored job ---
 function extractJobEventNotification(entry) {
   if (!entry || !entry.action || !entry.targetName) return null;
   let mainText = "Job Update";
@@ -1546,6 +1547,9 @@ function extractJobEventNotification(entry) {
       subText = `Job "${entry.targetName}" deleted by ${detailsBy}`;
     } else if (entry.action === "created job") {
       subText = `Job "${entry.targetName}" created by ${detailsBy}`;
+    } else if (entry.action === "restored job") {
+      // Only show job restored by admin
+      subText = `Job "${entry.targetName}" Restored by Admin`;
     } else {
       subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
     }
