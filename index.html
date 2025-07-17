@@ -861,6 +861,145 @@ body.dark .history-meta { color: #99b7ff; }
   #historyModal .modal-content { padding: 1em 0.4em 1em 0.4em; }
   #historyModal .modal-close { left: 0.4em; top: 0.5em; width: 1.8em; height: 1.8em; font-size: 1em;}
 }
+
+/* Delete Confirmation Modal Styles */
+#deleteConfirmModal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 50, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.3s;
+}
+#deleteConfirmModal.active {
+  display: flex;
+}
+#deleteConfirmModal .modal-content {
+  background: #fff;
+  color: #222;
+  border-radius: 12px;
+  max-width: 480px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px #1a233877;
+  padding: 2em 2em 1.5em 2em;
+  animation: fade-in 0.4s;
+  position: relative;
+  border: 2.5px solid var(--danger);
+  text-align: center;
+}
+body.dark #deleteConfirmModal .modal-content {
+  background: #232337;
+  color: #d5e4ff;
+  border: 2.5px solid #ff6b6b;
+}
+#deleteConfirmModal .modal-close {
+  position: absolute;
+  right: 1.1em;
+  top: 1.1em;
+  font-size: 1.1em;
+  width: 2em;
+  height: 2em;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px #e03f3f29;
+  z-index: 2;
+  padding: 0;
+}
+#deleteConfirmModal .modal-close:hover {
+  background: var(--danger-hover);
+  color: #fff;
+}
+#deleteConfirmModal h3 {
+  margin-bottom: 1.1em;
+  text-align: center;
+  color: var(--danger);
+}
+body.dark #deleteConfirmModal h3 { color: #ff6b6b;}
+#deleteItemName {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 1em 0;
+  word-break: break-word;
+}
+body.dark #deleteItemName { color: #99b7ff; }
+.delete-modal-buttons {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+  margin-top: 2em;
+}
+.delete-modal-btn {
+  padding: 0.7em 2em;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  min-width: 100px;
+}
+.delete-modal-btn:hover {
+  transform: translateY(-1px);
+}
+.cancel-btn {
+  background: var(--secondary);
+  color: #444;
+  border: 2px solid var(--border);
+}
+.cancel-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e0;
+}
+body.dark .cancel-btn {
+  background: var(--dark-secondary);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+}
+body.dark .cancel-btn:hover {
+  background: #34345c;
+  border-color: #4a4a6b;
+}
+.delete-btn {
+  background: var(--danger);
+  color: #fff;
+}
+.delete-btn:hover {
+  background: var(--danger-hover);
+}
+@media (max-width: 550px) {
+  #deleteConfirmModal .modal-content { 
+    padding: 1.5em 1em; 
+    width: 95vw;
+  }
+  #deleteConfirmModal .modal-close { 
+    right: 0.8em; 
+    top: 0.8em; 
+    width: 1.8em; 
+    height: 1.8em; 
+    font-size: 1em;
+  }
+  .delete-modal-buttons {
+    flex-direction: column;
+    gap: 0.8em;
+  }
+  .delete-modal-btn {
+    width: 100%;
+    padding: 0.8em 1em;
+  }
+}
 .action-btn[title="View History"]:hover, 
 .action-btn[title="View History"]:focus {
   color: #fff !important;
@@ -1334,6 +1473,22 @@ body.dark .animated-border-box:after {
       </div>
     </div>
   </div>
+  <!-- Custom Delete Confirmation Modal -->
+  <div id="deleteConfirmModal">
+    <div class="modal-content">
+      <button class="modal-close" id="deleteModalClose" aria-label="Close">&times;</button>
+      <h3>Confirm Deletion</h3>
+      <div id="deleteConfirmContent">
+        <p>Are you sure you want to delete this item?</p>
+        <p id="deleteItemName" style="font-weight: 600; color: var(--primary); margin: 1em 0;"></p>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 2em;">This action cannot be undone.</p>
+        <div class="delete-modal-buttons">
+          <button id="deleteCancelBtn" class="delete-modal-btn cancel-btn">Cancel</button>
+          <button id="deleteConfirmBtn" class="delete-modal-btn delete-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
 <script>
 const API_URL = 'https://pfback-dcuc.onrender.com';
 
@@ -1358,6 +1513,12 @@ const $backendLoader = document.getElementById('backendLoader');
 const $historyModal = document.getElementById('historyModal');
 const $historyModalClose = document.getElementById('historyModalClose');
 const $historyContent = document.getElementById('historyContent');
+
+const $deleteConfirmModal = document.getElementById('deleteConfirmModal');
+const $deleteModalClose = document.getElementById('deleteModalClose');
+const $deleteItemName = document.getElementById('deleteItemName');
+const $deleteCancelBtn = document.getElementById('deleteCancelBtn');
+const $deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
 
 const $notifPopup = document.getElementById('notificationPopup');
 const $notifSub = $notifPopup ? $notifPopup.querySelector('.notif-sub') : null;
@@ -1668,19 +1829,24 @@ async function updateJob(jobId, job) {
 async function deleteJob(idx) {
   const job = jobs[idx];
   if (!job || !job.id) return alert("Job not found.");
-  if (!confirm('Delete this job?')) return;
-  showBackendLoader(true);
-  const res = await fetch(API_URL + '/api/jobs/' + job.id, {
-    method: 'DELETE',
-    headers: {'Authorization': auth.token}
+  
+  const customerName = job.customerName || 'Unknown Customer';
+  const itemName = `Job for ${customerName}`;
+  
+  showDeleteConfirmModal(itemName, async () => {
+    showBackendLoader(true);
+    const res = await fetch(API_URL + '/api/jobs/' + job.id, {
+      method: 'DELETE',
+      headers: {'Authorization': auth.token}
+    });
+    const data = await res.json();
+    showBackendLoader(false);
+    if (data.ok) {
+      await loadJobs({silent:true});
+    } else {
+      alert(data.error || "Failed to delete job.");
+    }
   });
-  const data = await res.json();
-  showBackendLoader(false);
-  if (data.ok) {
-    await loadJobs({silent:true});
-  } else {
-    alert(data.error || "Failed to delete job.");
-  }
 }
 function getFormData() {
   return {
@@ -1872,6 +2038,60 @@ $historyModal.onclick = function(e) {
     $historyContent.innerHTML = '';
   }
 };
+
+// Delete Confirmation Modal Functions
+let deleteCallback = null;
+
+function showDeleteConfirmModal(itemName, onConfirm) {
+  $deleteItemName.textContent = itemName;
+  deleteCallback = onConfirm;
+  $deleteConfirmModal.classList.add('active');
+  // Focus management for accessibility
+  setTimeout(() => {
+    $deleteCancelBtn.focus();
+  }, 100);
+}
+
+function hideDeleteConfirmModal() {
+  $deleteConfirmModal.classList.remove('active');
+  deleteCallback = null;
+}
+
+$deleteModalClose.onclick = hideDeleteConfirmModal;
+$deleteCancelBtn.onclick = hideDeleteConfirmModal;
+
+$deleteConfirmBtn.onclick = function() {
+  if (deleteCallback) {
+    deleteCallback();
+  }
+  hideDeleteConfirmModal();
+};
+
+$deleteConfirmModal.onclick = function(e) {
+  if (e.target === $deleteConfirmModal) {
+    hideDeleteConfirmModal();
+  }
+};
+
+// Keyboard accessibility
+$deleteConfirmModal.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    hideDeleteConfirmModal();
+  } else if (e.key === 'Tab') {
+    // Keep focus within modal
+    const focusableElements = $deleteConfirmModal.querySelectorAll('button');
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    if (e.shiftKey && document.activeElement === firstElement) {
+      e.preventDefault();
+      lastElement.focus();
+    } else if (!e.shiftKey && document.activeElement === lastElement) {
+      e.preventDefault();
+      firstElement.focus();
+    }
+  }
+});
 
 document.getElementById('job-form').addEventListener('submit', async function(e) {
   e.preventDefault();

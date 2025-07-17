@@ -573,6 +573,145 @@
     .deleteHistoryBtn:hover {
       background: var(--danger-hover);
     }
+
+    /* Delete Confirmation Modal Styles */
+    #deleteConfirmModal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 30, 50, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background 0.3s;
+    }
+    #deleteConfirmModal.active {
+      display: flex;
+    }
+    #deleteConfirmModal .modal-content {
+      background: #fff;
+      color: #222;
+      border-radius: 12px;
+      max-width: 480px;
+      width: 90vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px #1a233877;
+      padding: 2em 2em 1.5em 2em;
+      animation: fade-in 0.4s;
+      position: relative;
+      border: 2.5px solid var(--danger);
+      text-align: center;
+    }
+    body.dark #deleteConfirmModal .modal-content {
+      background: var(--dark-card);
+      color: var(--dark-text);
+      border: 2.5px solid #ff6b6b;
+    }
+    #deleteConfirmModal .modal-close {
+      position: absolute;
+      right: 1.1em;
+      top: 1.1em;
+      font-size: 1.1em;
+      width: 2em;
+      height: 2em;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 8px #e03f3f29;
+      z-index: 2;
+      padding: 0;
+    }
+    #deleteConfirmModal .modal-close:hover {
+      background: var(--danger-hover);
+      color: #fff;
+    }
+    #deleteConfirmModal h3 {
+      margin-bottom: 1.1em;
+      text-align: center;
+      color: var(--danger);
+    }
+    body.dark #deleteConfirmModal h3 { color: #ff6b6b;}
+    #deleteItemName {
+      font-weight: 600;
+      color: var(--primary);
+      margin: 1em 0;
+      word-break: break-word;
+    }
+    body.dark #deleteItemName { color: #99b7ff; }
+    .delete-modal-buttons {
+      display: flex;
+      gap: 1em;
+      justify-content: center;
+      margin-top: 2em;
+    }
+    .delete-modal-btn {
+      padding: 0.7em 2em;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      min-width: 100px;
+    }
+    .delete-modal-btn:hover {
+      transform: translateY(-1px);
+    }
+    .cancel-btn {
+      background: var(--secondary);
+      color: #444;
+      border: 2px solid var(--border);
+    }
+    .cancel-btn:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e0;
+    }
+    body.dark .cancel-btn {
+      background: var(--dark-secondary);
+      color: var(--dark-text);
+      border-color: var(--dark-border);
+    }
+    body.dark .cancel-btn:hover {
+      background: #34345c;
+      border-color: #4a4a6b;
+    }
+    .delete-btn {
+      background: var(--danger);
+      color: #fff;
+    }
+    .delete-btn:hover {
+      background: var(--danger-hover);
+    }
+    @media (max-width: 550px) {
+      #deleteConfirmModal .modal-content { 
+        padding: 1.5em 1em; 
+        width: 95vw;
+      }
+      #deleteConfirmModal .modal-close { 
+        right: 0.8em; 
+        top: 0.8em; 
+        width: 1.8em; 
+        height: 1.8em; 
+        font-size: 1em;
+      }
+      .delete-modal-buttons {
+        flex-direction: column;
+        gap: 0.8em;
+      }
+      .delete-modal-btn {
+        width: 100%;
+        padding: 0.8em 1em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -643,6 +782,24 @@
       </table>
     </div>
   </main>
+  
+  <!-- Custom Delete Confirmation Modal -->
+  <div id="deleteConfirmModal">
+    <div class="modal-content">
+      <button class="modal-close" id="deleteModalClose" aria-label="Close">&times;</button>
+      <h3>Confirm Deletion</h3>
+      <div id="deleteConfirmContent">
+        <p>Are you sure you want to delete this item?</p>
+        <p id="deleteItemName" style="font-weight: 600; color: var(--primary); margin: 1em 0;"></p>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 2em;">This action cannot be undone.</p>
+        <div class="delete-modal-buttons">
+          <button id="deleteCancelBtn" class="delete-modal-btn cancel-btn">Cancel</button>
+          <button id="deleteConfirmBtn" class="delete-modal-btn delete-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   const API_URL = 'https://pfback-dcuc.onrender.com';
   let adminToken = null;
@@ -671,6 +828,65 @@
     notifTimer = setTimeout(hideNotificationPopup, 7000);
   }
   window.hideNotificationPopup = hideNotificationPopup;
+
+  // Delete Confirmation Modal Functions
+  const $deleteConfirmModal = document.getElementById('deleteConfirmModal');
+  const $deleteModalClose = document.getElementById('deleteModalClose');
+  const $deleteItemName = document.getElementById('deleteItemName');
+  const $deleteCancelBtn = document.getElementById('deleteCancelBtn');
+  const $deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+  let deleteCallback = null;
+
+  function showDeleteConfirmModal(itemName, onConfirm) {
+    $deleteItemName.textContent = itemName;
+    deleteCallback = onConfirm;
+    $deleteConfirmModal.classList.add('active');
+    // Focus management for accessibility
+    setTimeout(() => {
+      $deleteCancelBtn.focus();
+    }, 100);
+  }
+
+  function hideDeleteConfirmModal() {
+    $deleteConfirmModal.classList.remove('active');
+    deleteCallback = null;
+  }
+
+  $deleteModalClose.onclick = hideDeleteConfirmModal;
+  $deleteCancelBtn.onclick = hideDeleteConfirmModal;
+
+  $deleteConfirmBtn.onclick = function() {
+    if (deleteCallback) {
+      deleteCallback();
+    }
+    hideDeleteConfirmModal();
+  };
+
+  $deleteConfirmModal.onclick = function(e) {
+    if (e.target === $deleteConfirmModal) {
+      hideDeleteConfirmModal();
+    }
+  };
+
+  // Keyboard accessibility
+  $deleteConfirmModal.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      hideDeleteConfirmModal();
+    } else if (e.key === 'Tab') {
+      // Keep focus within modal
+      const focusableElements = $deleteConfirmModal.querySelectorAll('button');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  });
 
   // Banner logic
   const $bannerToggleGroup = document.getElementById('bannerToggleGroup');
@@ -854,40 +1070,42 @@
     }
   }
   async function approveUser(username) {
-    if (!confirm(`Approve user "${username}"?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/approve', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error approving user");
-      document.getElementById('successMsg').innerText = `User "${username}" approved.`;
-      loadPendingUsers();
-      loadUsers();
-      await loadSiteHistory(true); // notification
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showDeleteConfirmModal(`Approve user "${username}"?`, async () => {
+      try {
+        const r = await fetch(API_URL+'/api/admin/approve', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+          body: JSON.stringify({username})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Error approving user");
+        document.getElementById('successMsg').innerText = `User "${username}" approved.`;
+        loadPendingUsers();
+        loadUsers();
+        await loadSiteHistory(true); // notification
+      } catch(e) {
+        alert("Failed: "+e.message);
+      }
+    });
   }
   async function denyUser(username) {
-    if (!confirm(`Deny (delete) user "${username}"?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/deny', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error denying user");
-      document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
-      loadPendingUsers();
-      loadUsers();
-      await loadSiteHistory(true);
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showDeleteConfirmModal(`Deny (delete) user "${username}"?`, async () => {
+      try {
+        const r = await fetch(API_URL+'/api/admin/deny', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+          body: JSON.stringify({username})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Error denying user");
+        document.getElementById('successMsg').innerText = `User "${username}" denied/deleted.`;
+        loadPendingUsers();
+        loadUsers();
+        await loadSiteHistory(true);
+      } catch(e) {
+        alert("Failed: "+e.message);
+      }
+    });
   }
 
   // List all users (admins and users)
@@ -929,38 +1147,40 @@
     }
   }
   async function removeUser(username) {
-    if (!confirm(`Remove user "${username}" from the site?`)) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/remove-user', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': adminToken},
-        body: JSON.stringify({username})
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Error removing user");
-      document.getElementById('successMsg').innerText = `User "${username}" removed.`;
-      loadUsers();
-      await loadSiteHistory(true);
-    } catch(e) {
-      alert("Failed: "+e.message);
-    }
+    showDeleteConfirmModal(`Remove user "${username}" from the site?`, async () => {
+      try {
+        const r = await fetch(API_URL+'/api/admin/remove-user', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': adminToken},
+          body: JSON.stringify({username})
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Error removing user");
+        document.getElementById('successMsg').innerText = `User "${username}" removed.`;
+        loadUsers();
+        await loadSiteHistory(true);
+      } catch(e) {
+        alert("Failed: "+e.message);
+      }
+    });
   }
 
   // Delete history entry
   async function deleteHistoryEntry(entryId) {
-    if (!confirm("Delete this history entry? This cannot be undone.")) return;
-    try {
-      const r = await fetch(API_URL+'/api/admin/delete-history', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
-        body: JSON.stringify({ id: entryId })
-      });
-      const res = await r.json();
-      if (!res.ok) throw new Error(res.error || "Failed to delete history entry");
-      loadSiteHistory();
-    } catch (e) {
-      alert("Failed: " + e.message);
-    }
+    showDeleteConfirmModal("Delete this history entry? This cannot be undone.", async () => {
+      try {
+        const r = await fetch(API_URL+'/api/admin/delete-history', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization': adminToken },
+          body: JSON.stringify({ id: entryId })
+        });
+        const res = await r.json();
+        if (!res.ok) throw new Error(res.error || "Failed to delete history entry");
+        loadSiteHistory();
+      } catch (e) {
+        alert("Failed: " + e.message);
+      }
+    });
   }
 
   // Site-wide history, with notification
