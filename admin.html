@@ -1294,7 +1294,8 @@
           });
           const res = await r.json();
           if (!res.ok) throw new Error(res.error || "Failed to restore job");
-          showNotificationPopup("Job Restored", `Job for "${customerName}" has been restored.`);
+          // CHANGED: Only show job name, no admin name!
+          showNotificationPopup("Job Restored", `Job "${customerName}" restored!`);
           loadSiteHistory();
         } catch (e) {
           showNotificationPopup("Restore Failed", e.message);
@@ -1354,7 +1355,8 @@
                 } else if (entry.action === "created job") {
                   subText = `Job "${entry.targetName}" created by ${detailsBy}`;
                 } else if (entry.action === "restored job") {
-                  subText = `Job "${entry.targetName}" restored`;
+                  // CHANGED: Only show job name, no admin name!
+                  subText = `Job "${entry.targetName}" restored!`;
                 } else {
                   subText = `Job "${entry.targetName}" ${entry.action} by ${detailsBy}`;
                 }
